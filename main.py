@@ -188,6 +188,16 @@ _expiry_thread = threading.Thread(target=_run_expiry_scheduler, daemon=True, nam
 _expiry_thread.start()
 print("[MatchExpiry] Background expiry worker started (sweep interval: 5 min).")
 
+@app.get("/api/health")
+@app.get("/api/version")
+def get_backend_health():
+    return {
+        "status": "healthy",
+        "service": "Spark Dating Backend",
+        "version": "1.1.0-strict-moderation",
+        "moderation_engine": "active"
+    }
+
 UPLOAD_DIR = "./temp_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 

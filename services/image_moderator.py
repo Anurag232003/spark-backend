@@ -1,8 +1,7 @@
 # backend/services/image_moderator.py
 import io
 from typing import Dict, Any, Tuple
-from PIL import Image, ImageFilter
-import numpy as np
+from PIL import Image
 from fastapi import HTTPException
 
 # Dangerous binary markers that indicate polyglot files, embedded scripts, or shell injection
@@ -63,96 +62,83 @@ def sanitize_and_strip_metadata(image_stream: io.BytesIO, image_format: str) -> 
 
 def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     """
-    Multi-stage computer vision detection for nudity, bare torso, and NSFW content:
-    1. Multi-space skin detection (RGB + YCbCr) across diverse skin tones.
-    2. Connected component clustering: identifies large contiguous patches of exposed flesh.
-    3. Edge density & texture analysis: distinguishes smooth exposed bodies from structured clothing/faces.
+    High-precision nudity, bare torso, and NSFW detector:
+    1. RGB + YCbCr skin tone classification across Indian, Asian, and all skin complexions.
+    2. 2D Connected Component Cluster analysis to detect large contiguous patches of exposed flesh.
+    3. Rejects photos exceeding strict safety thresholds (30% bare skin or 18% contiguous cluster).
     """
-    thumb = img.convert("RGB").resize((120, 120))
-    arr = np.array(thumb, dtype=np.float32)
+    thumb = img.convert("RGB").resize((100, 100))
+    # get pixel tuples
+    raw_pixels = list(thumb.getdata())
+    total_pixels = len(raw_pixels)  # 10,000
 
-    r = arr[:, :, 0]
-    g = arr[:, :, 1]
-    b = arr[:, :, 2]
+    skin_mask = [0] * total_pixels
+    skin_count = 0
 
-    # 1. RGB Skin rule
-    rgb_rule = (
-        (r > 80) & (g > 35) & (b > 20) &
-        ((np.maximum(np.maximum(r, g), b) - np.minimum(np.minimum(r, g), b)) > 15) &
-        (np.abs(r - g) > 12) & (r > g) & (r > b)
-    )
+    for idx, pixel in enumerate(raw_pixels):
+        r, g, b = pixel[0], pixel[1], pixel[2]
 
-    # 2. YCbCr Skin rule
-    y = 0.299 * r + 0.587 * g + 0.114 * b
-    cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b
-    cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b
-    ycbcr_rule = (y > 60) & (cb >= 77) & (cb <= 135) & (cr >= 130) & (cr <= 180)
+        # 1. RGB Skin rule
+        is_rgb_skin = (
+            r > 80 and g > 35 and b > 20 and
+            (max(r, g, b) - min(r, g, b)) > 15 and
+            abs(r - g) > 12 and r > g and r > b
+        )
 
-    # Combined skin mask
-    skin_mask = rgb_rule & ycbcr_rule
-    total_pixels = 120 * 120
-    skin_count = np.sum(skin_mask)
-    skin_ratio = float(skin_count) / total_pixels
+        # 2. YCbCr Skin rule
+        y = 0.299 * r + 0.587 * g + 0.114 * b
+        cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b
+        cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b
+        is_ycbcr_skin = (y > 60 and 77 <= cb <= 135 and 130 <= cr <= 180)
 
-    # 3. Connected component / cluster analysis on 60x60 grid
-    grid = skin_mask[::2, ::2]  # 60x60
-    visited = np.zeros_like(grid, dtype=bool)
+        if is_rgb_skin and is_ycbcr_skin:
+            skin_mask[idx] = 1
+            skin_count += 1
+
+    skin_ratio = skin_count / total_pixels
+
+    # 3. BFS Connected Component Analysis for Largest Continuous Flesh Cluster
+    w, h = 100, 100
+    visited = [False] * total_pixels
     max_cluster = 0
-    h, w = grid.shape
 
     for i in range(h):
         for j in range(w):
-            if grid[i, j] and not visited[i, j]:
+            idx = i * w + j
+            if skin_mask[idx] and not visited[idx]:
                 cluster_size = 0
-                queue = [(i, j)]
-                visited[i, j] = True
+                queue = [idx]
+                visited[idx] = True
                 while queue:
-                    ci, cj = queue.pop()
+                    curr = queue.pop()
                     cluster_size += 1
-                    for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    ci, cj = divmod(curr, w)
+                    for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                         ni, nj = ci + di, cj + dj
-                        if 0 <= ni < h and 0 <= nj < w and grid[ni, nj] and not visited[ni, nj]:
-                            visited[ni, nj] = True
-                            queue.append((ni, nj))
+                        if 0 <= ni < h and 0 <= nj < w:
+                            nidx = ni * w + nj
+                            if skin_mask[nidx] and not visited[nidx]:
+                                visited[nidx] = True
+                                queue.append(nidx)
                 if cluster_size > max_cluster:
                     max_cluster = cluster_size
 
-    cluster_ratio = float(max_cluster) / (h * w)
+    cluster_ratio = max_cluster / total_pixels
 
-    # 4. Texture and Edge analysis
-    gray = thumb.convert("L")
-    edges = gray.filter(ImageFilter.FIND_EDGES)
-    edge_arr = np.array(edges, dtype=np.float32)
-    skin_edges = edge_arr[skin_mask]
-    edge_density = float(np.mean(skin_edges)) if len(skin_edges) > 0 else 0.0
-
+    # Strict Dating App NSFW Rule:
+    # - Clothed face portraits: skin_ratio is typically 5% to 20%
+    # - Bare torso, bikini, underwear, or naked bodies: skin_ratio > 30% or cluster_ratio > 18%
     is_nsfw = False
     reason = None
 
-    # Decision thresholds:
-    # A. Obvious full nudity or massive bare exposure
-    if skin_ratio > 0.45 or cluster_ratio > 0.35:
-        if edge_density < 18.0 or skin_ratio > 0.65:
-            is_nsfw = True
-            reason = f"Excessive bare body exposure ({skin_ratio*100:.1f}%). 18+ or nude photos are strictly prohibited."
-        elif cluster_ratio > 0.40:
-            is_nsfw = True
-            reason = f"Uncovered body/naked torso detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed."
-    # B. Topless or underwear/bikini/explicit pose: skin_ratio > 28% with smooth large skin cluster
-    elif skin_ratio > 0.28 and cluster_ratio > 0.18:
-        if edge_density < 16.0:
-            is_nsfw = True
-            reason = f"Large bare skin cluster ({cluster_ratio*100:.1f}%) detected. 18+ or naked photos are strictly prohibited."
-    # C. Medium skin ratio (> 24%) with huge contiguous bare skin
-    elif cluster_ratio > 0.22 and edge_density < 14.0:
+    if skin_ratio > 0.30 or cluster_ratio > 0.18:
         is_nsfw = True
-        reason = "Bare torso or exposed body detected. Spark dating app strictly prohibits 18+ or naked photos."
+        reason = f"Inappropriate content: 18+, naked, or sexually explicit photos are strictly prohibited on Spark (Skin: {skin_ratio*100:.1f}%, Cluster: {cluster_ratio*100:.1f}%)."
 
     return {
         "is_nsfw": is_nsfw,
         "skin_ratio": round(skin_ratio, 3),
         "cluster_ratio": round(cluster_ratio, 3),
-        "edge_density": round(edge_density, 2),
         "reason": reason
     }
 
@@ -176,7 +162,6 @@ def moderate_image_content(image_stream: io.BytesIO) -> Dict[str, Any]:
             nudity_res = detect_nudity_and_nsfw(img)
             moderation_result["skin_exposure_ratio"] = nudity_res["skin_ratio"]
             moderation_result["cluster_ratio"] = nudity_res["cluster_ratio"]
-            moderation_result["edge_density"] = nudity_res["edge_density"]
 
             if nudity_res["is_nsfw"]:
                 moderation_result["status"] = "REJECTED"
