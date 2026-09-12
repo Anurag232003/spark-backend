@@ -57,6 +57,7 @@ from services.image_validator import (
     download_safe_profile_image,
 )
 from services.image_moderator import process_and_moderate_image
+from services.text_moderator import is_message_clean
 from services.firebase_auth import verify_firebase_phone_token, is_firebase_configured
 from database import (
     users_collection,
@@ -1693,9 +1694,90 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
             "matchId": m["match_id"],
             "senderId": m["sender_id"],
             "text": m["text"],
+            "isScreenshot": m.get("is_screenshot", False),
             "timestamp": m["timestamp"].isoformat()
         })
     return {"status": "SUCCESS", "messages": history}
+
+class SendMessageRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=1000)
+    isScreenshot: Optional[bool] = False
+
+@app.post("/api/matches/{match_id}/messages")
+async def send_match_message(
+    match_id: str,
+    payload: SendMessageRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    text = payload.text.strip()
+    is_screenshot = bool(payload.isScreenshot)
+
+    # 1. Content Safety: Strict profanity and vulgarity rejection
+    if not is_screenshot:
+        is_clean, reject_reason = is_message_clean(text)
+        if not is_clean:
+            raise HTTPException(status_code=400, detail=reject_reason)
+
+    # 2. Verify match and permissions
+    try:
+        match_obj_id = ObjectId(match_id)
+        match_query = {
+            "_id": match_obj_id,
+            "$or": [{"user1_id": user_id}, {"user2_id": user_id}]
+        }
+    except Exception:
+        match_query = {
+            "$or": [
+                {"_id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]},
+                {"id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]}
+            ]
+        }
+
+    match = matches_collection.find_one(match_query)
+    if not match:
+        raise HTTPException(status_code=403, detail="Not authorized to send messages on this match.")
+
+    if match.get("status") != "ACTIVE":
+        raise HTTPException(status_code=400, detail="Match is not active.")
+
+    u1 = match.get("user1_id")
+    u2 = match.get("user2_id")
+    receiver_id = u2 if user_id == u1 else u1
+
+    if receiver_id in get_blocked_user_ids(user_id):
+        raise HTTPException(status_code=400, detail="Communication between these users is blocked.")
+
+    msg_doc = {
+        "match_id": match_id,
+        "sender_id": user_id,
+        "receiver_id": receiver_id,
+        "text": text,
+        "is_screenshot": is_screenshot,
+        "timestamp": datetime.utcnow()
+    }
+    inserted = messages_collection.insert_one(msg_doc)
+
+    if not match.get("first_move_made"):
+        matches_collection.update_one({"_id": match["_id"]}, {"$set": {"first_move_made": True, "first_move_at": datetime.utcnow()}})
+
+    resp_payload = {
+        "id": str(inserted.inserted_id),
+        "matchId": match_id,
+        "senderId": user_id,
+        "receiverId": receiver_id,
+        "text": text,
+        "isScreenshot": is_screenshot,
+        "timestamp": msg_doc["timestamp"].isoformat()
+    }
+
+    try:
+        await manager.send_personal_message(resp_payload, user_id)
+        await manager.send_personal_message(resp_payload, receiver_id)
+    except Exception:
+        pass
+
+    return {"status": "SUCCESS", "message": resp_payload}
 
 # --- 13. Secure WebSocket Chat (Handshake Token Auth & Isolation) ---
 @app.websocket("/ws/chat")
@@ -1760,6 +1842,19 @@ async def websocket_chat_endpoint(
                     "message": "Chat message cannot exceed 1000 characters."
                 })
                 continue
+
+            is_screenshot = data.get("type") == "SCREENSHOT_ALERT" or bool(data.get("isScreenshot", False))
+
+            # Content Safety: Block vulgar, abusive, or sexually explicit messages
+            if not is_screenshot:
+                is_clean, reject_reason = is_message_clean(text)
+                if not is_clean:
+                    await websocket.send_json({
+                        "status": "ERROR",
+                        "error": "VULGAR_CONTENT",
+                        "message": reject_reason
+                    })
+                    continue
 
             # 1. Does this match exist?
             try:
@@ -1860,6 +1955,7 @@ async def websocket_chat_endpoint(
                 "sender_id": user_id,
                 "receiver_id": receiver_id,
                 "text": text,
+                "is_screenshot": is_screenshot,
                 "timestamp": datetime.utcnow()
             }
             inserted = messages_collection.insert_one(msg_doc)
@@ -1877,6 +1973,7 @@ async def websocket_chat_endpoint(
                 "senderId": user_id,
                 "receiverId": receiver_id,
                 "text": text,
+                "isScreenshot": is_screenshot,
                 "timestamp": msg_doc["timestamp"].isoformat()
             }
 
