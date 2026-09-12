@@ -62,13 +62,17 @@ def sanitize_and_strip_metadata(image_stream: io.BytesIO, image_format: str) -> 
 
 def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     """
-    High-precision nudity, bare torso, and NSFW detector:
-    1. RGB + YCbCr skin tone classification across Indian, Asian, and all skin complexions.
-    2. 2D Connected Component Cluster analysis to detect large contiguous patches of exposed flesh.
-    3. Rejects photos exceeding strict safety thresholds (30% bare skin or 18% contiguous cluster).
+    Intelligent Nudity & NSFW Content Moderation with Body-Zone Awareness:
+    1. Multi-space skin detection (RGB + YCbCr) calibrated for Indian, Asian, and all human skin tones.
+    2. Body-Zone Torso Analysis: Distinguishes between clothed sleeveless/tank-tops and bare chests/nude torsos.
+    3. Connected Component Flesh Clustering: Identifies massive continuous patches of exposed body.
+    
+    Safe & Approved:
+      - Normal clothed portraits, t-shirts, dresses, sleeveless tops, tank-tops, shorts, casual photos.
+    Rejected:
+      - Fully naked photos, topless/shirtless explicit poses, underwear/lingerie, sexually explicit content.
     """
     thumb = img.convert("RGB").resize((100, 100))
-    # get pixel tuples
     raw_pixels = list(thumb.getdata())
     total_pixels = len(raw_pixels)  # 10,000
 
@@ -95,7 +99,19 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
             skin_mask[idx] = 1
             skin_count += 1
 
-    skin_ratio = skin_count / total_pixels
+    total_skin_ratio = skin_count / total_pixels
+
+    # 2. Central Torso Zone Analysis (y: 30% to 70%, x: 25% to 75%)
+    # Clothed tops (tank tops, t-shirts, dresses) cover the central chest and abdomen.
+    # Topless, naked, or explicit photos leave the torso exposed (>58% bare skin).
+    torso_pixels = 0
+    torso_skin = 0
+    for y_coord in range(30, 70):
+        for x_coord in range(25, 75):
+            torso_pixels += 1
+            if skin_mask[y_coord * 100 + x_coord]:
+                torso_skin += 1
+    torso_skin_ratio = torso_skin / torso_pixels
 
     # 3. BFS Connected Component Analysis for Largest Continuous Flesh Cluster
     w, h = 100, 100
@@ -125,19 +141,27 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
 
     cluster_ratio = max_cluster / total_pixels
 
-    # Strict Dating App NSFW Rule:
-    # - Clothed face portraits: skin_ratio is typically 5% to 20%
-    # - Bare torso, bikini, underwear, or naked bodies: skin_ratio > 30% or cluster_ratio > 18%
+    # Precise Dating App Safety Evaluation:
+    # 1. Total bare skin > 40% (excessive exposure across body / nudity)
+    # 2. Bare Torso > 58% AND total skin > 28% (uncovered chest/stomach, topless/nude)
+    # 3. Massive contiguous bare flesh cluster > 35%
     is_nsfw = False
     reason = None
 
-    if skin_ratio > 0.30 or cluster_ratio > 0.18:
+    if total_skin_ratio > 0.40:
         is_nsfw = True
-        reason = f"Inappropriate content: 18+, naked, or sexually explicit photos are strictly prohibited on Spark (Skin: {skin_ratio*100:.1f}%, Cluster: {cluster_ratio*100:.1f}%)."
+        reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
+    elif torso_skin_ratio > 0.58 and total_skin_ratio > 0.28:
+        is_nsfw = True
+        reason = f"Bare torso or uncovered chest detected ({torso_skin_ratio*100:.1f}% bare torso). 18+ or naked photos are not allowed on Spark."
+    elif cluster_ratio > 0.35:
+        is_nsfw = True
+        reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
 
     return {
         "is_nsfw": is_nsfw,
-        "skin_ratio": round(skin_ratio, 3),
+        "total_skin_ratio": round(total_skin_ratio, 3),
+        "torso_skin_ratio": round(torso_skin_ratio, 3),
         "cluster_ratio": round(cluster_ratio, 3),
         "reason": reason
     }
@@ -147,7 +171,7 @@ def moderate_image_content(image_stream: io.BytesIO) -> Dict[str, Any]:
     Content moderation layer:
     1. Multi-stage nudity, bare torso, and NSFW detection.
     2. REJECTS inappropriate, naked, or 18+ photos immediately.
-    3. Returns moderation metadata for audit and safety logging.
+    3. ACCEPTS normal clothed fashion, sleeveless tops, and casual portraits.
     """
     image_stream.seek(0)
     moderation_result = {
@@ -160,7 +184,8 @@ def moderate_image_content(image_stream: io.BytesIO) -> Dict[str, Any]:
     try:
         with Image.open(image_stream) as img:
             nudity_res = detect_nudity_and_nsfw(img)
-            moderation_result["skin_exposure_ratio"] = nudity_res["skin_ratio"]
+            moderation_result["skin_exposure_ratio"] = nudity_res["total_skin_ratio"]
+            moderation_result["torso_skin_ratio"] = nudity_res["torso_skin_ratio"]
             moderation_result["cluster_ratio"] = nudity_res["cluster_ratio"]
 
             if nudity_res["is_nsfw"]:
