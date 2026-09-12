@@ -1918,8 +1918,14 @@ async def upload_photo(
     # 2. Deep binary validation (magic bytes, dimensions, 5MB file size, extension, decompression limits)
     validated_stream, detected_format, canonical_ext = await validate_and_process_uploaded_image(file, request)
 
-    # 3. Security & Safety Moderation (Malware scan, EXIF/GPS privacy stripping, NSFW/content check)
+    # 3. Security & Safety Moderation (Malware scan, EXIF/GPS privacy stripping, NSFW/nudity check)
     sanitized_stream, moderation_meta = process_and_moderate_image(validated_stream, detected_format)
+
+    if moderation_meta.get("status") != "APPROVED":
+        raise HTTPException(
+            status_code=400,
+            detail=moderation_meta.get("reason") or "Photo rejected: Inappropriate, 18+, or naked content is strictly prohibited on Spark."
+        )
 
     try:
         # Upload sanitized in-memory stream to Cloudinary organized by user folder

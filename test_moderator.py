@@ -38,7 +38,7 @@ def test_moderator():
         print(f"PASS: Blocked JS tag injection ({e.detail})")
 
     # 4. EXIF GPS stripping test
-    im = Image.new("RGB", (200, 200), color="pink")
+    im = Image.new("RGB", (200, 200), color="lightgray")
     exif = im.getexif()
     exif[0x010e] = "Geotagged Bedroom Photo GPS: 28.6139, 77.2090"
     exif_buf = io.BytesIO()
@@ -54,14 +54,17 @@ def test_moderator():
         assert len(check_out.getexif()) == 0
     print("PASS: Successfully stripped EXIF/GPS metadata to protect user privacy")
 
-    # 5. High skin exposure flagging test
-    skin_img = Image.new("RGB", (200, 200), color=(220, 160, 120))  # Caucasian/Asian skin tone
+    # 5. High skin exposure / Nudity rejection test
+    skin_img = Image.new("RGB", (200, 200), color=(220, 160, 120))  # Caucasian/Asian/Indian skin tone
     skin_buf = io.BytesIO()
     skin_img.save(skin_buf, format="JPEG")
-    _, skin_meta = process_and_moderate_image(skin_buf, "JPEG")
-    assert skin_meta["status"] == "FLAGGED"
-    assert skin_meta["is_flagged"] is True
-    print(f"PASS: Flagged high skin exposure ({skin_meta['reason']})")
+    try:
+        process_and_moderate_image(skin_buf, "JPEG")
+        raise AssertionError("FAIL: Did not reject high skin/nude image!")
+    except HTTPException as e:
+        assert e.status_code == 400
+        assert "Photo rejected" in e.detail or "prohibited" in e.detail or "detected" in e.detail
+        print(f"PASS: Successfully rejected nude/18+ image ({e.detail})")
 
     print("--- ALL MODERATION TESTS PASSED ---")
 
