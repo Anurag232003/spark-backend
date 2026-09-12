@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+venv/
+temp_uploads/
+*.db
+*.sqlite
+*.sqlite3
+dating_app.db
