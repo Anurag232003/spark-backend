@@ -387,6 +387,23 @@ class RefreshTokenRequest(BaseModel):
 class FirebaseLoginRequest(BaseModel):
     idToken: str
 
+class UpdateProfileRequest(BaseModel):
+    bio: Optional[str] = Field(default=None, max_length=1000)
+    photos: Optional[List[str]] = Field(default=None)
+    prompts: Optional[List[dict]] = Field(default=None)
+    occupation: Optional[str] = Field(default=None, max_length=100)
+    company: Optional[str] = Field(default=None, max_length=100)
+    education: Optional[str] = Field(default=None, max_length=150)
+    hometown: Optional[str] = Field(default=None, max_length=100)
+    height: Optional[str] = Field(default=None, max_length=50)
+    relationshipGoals: Optional[str] = Field(default=None, max_length=100)
+    drinking: Optional[str] = Field(default=None, max_length=50)
+    smoking: Optional[str] = Field(default=None, max_length=50)
+    exercise: Optional[str] = Field(default=None, max_length=50)
+    interests: Optional[List[str]] = Field(default=None)
+    languages: Optional[List[str]] = Field(default=None)
+
+
 class InteractionType(str, Enum):
     LIKE = "LIKE"
     PASS = "PASS"
@@ -1940,32 +1957,100 @@ async def upload_photo(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
+def format_user_profile_response(user: dict) -> dict:
+    return {
+        "id": user.get("id"),
+        "name": user.get("name"),
+        "role": user.get("role", "user"),
+        "age": user.get("age"),
+        "gender": user.get("gender"),
+        "phone": user.get("phone", ""),
+        "bio": user.get("bio", ""),
+        "photos": user.get("photos", []),
+        "prompts": user.get("prompts", []),
+        "is_photo_verified": user.get("is_photo_verified", False),
+        "isPhotoVerified": user.get("is_photo_verified", False),
+        "locationName": user.get("locationName") or "",
+        "occupation": user.get("occupation") or "",
+        "company": user.get("company") or "",
+        "education": user.get("education") or "",
+        "hometown": user.get("hometown") or "",
+        "height": user.get("height") or "",
+        "relationshipGoals": user.get("relationshipGoals") or "",
+        "drinking": user.get("drinking") or "",
+        "smoking": user.get("smoking") or "",
+        "exercise": user.get("exercise") or "",
+        "interests": user.get("interests", []),
+        "languages": user.get("languages", []),
+    }
+
 # --- 15. User Profiles (Current User & By ID) ---
 @app.get("/api/users/me")
 def get_my_profile(current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", "user")
-    user_phone = current_user.get("phone", "")
+    user_id = current_user["id"]
+    # Fetch fresh document from db to ensure latest fields
+    fresh_user = users_collection.find_one({"id": user_id}) or current_user
+    user_role = fresh_user.get("role", "user")
+    user_phone = fresh_user.get("phone", "")
     if is_admin_phone(user_phone):
         user_role = "admin"
-        if current_user.get("role") != "admin":
-            users_collection.update_one({"id": current_user["id"]}, {"$set": {"role": "admin"}})
-            current_user["role"] = "admin"
+        if fresh_user.get("role") != "admin":
+            users_collection.update_one({"id": user_id}, {"$set": {"role": "admin"}})
+            fresh_user["role"] = "admin"
 
     return {
         "status": "SUCCESS",
-        "user": {
-            "id": current_user["id"],
-            "name": current_user["name"],
-            "role": user_role,
-            "age": current_user.get("age"),
-            "gender": current_user.get("gender"),
-            "bio": current_user.get("bio", ""),
-            "photos": current_user.get("photos", []),
-            "prompts": current_user.get("prompts", []),
-            "is_photo_verified": current_user.get("is_photo_verified", False),
-            "isPhotoVerified": current_user.get("is_photo_verified", False),
-            "locationName": current_user.get("locationName") or "",
-        }
+        "user": format_user_profile_response(fresh_user)
+    }
+
+@app.put("/api/users/me")
+def update_my_profile(payload: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["id"]
+
+    # Security check: Name, Age, Gender, Phone are STRICTLY IMMUTABLE and cannot be modified
+    update_data = {}
+    if payload.bio is not None:
+        update_data["bio"] = payload.bio.strip()
+    if payload.photos is not None:
+        if len(payload.photos) == 0:
+            raise HTTPException(status_code=400, detail="Profile must contain at least one photo.")
+        if len(payload.photos) > 6:
+            raise HTTPException(status_code=400, detail="Maximum 6 photos allowed.")
+        update_data["photos"] = payload.photos
+    if payload.prompts is not None:
+        update_data["prompts"] = payload.prompts
+    if payload.occupation is not None:
+        update_data["occupation"] = payload.occupation.strip()
+    if payload.company is not None:
+        update_data["company"] = payload.company.strip()
+    if payload.education is not None:
+        update_data["education"] = payload.education.strip()
+    if payload.hometown is not None:
+        update_data["hometown"] = payload.hometown.strip()
+    if payload.height is not None:
+        update_data["height"] = payload.height.strip()
+    if payload.relationshipGoals is not None:
+        update_data["relationshipGoals"] = payload.relationshipGoals.strip()
+    if payload.drinking is not None:
+        update_data["drinking"] = payload.drinking.strip()
+    if payload.smoking is not None:
+        update_data["smoking"] = payload.smoking.strip()
+    if payload.exercise is not None:
+        update_data["exercise"] = payload.exercise.strip()
+    if payload.interests is not None:
+        update_data["interests"] = [i.strip() for i in payload.interests if i.strip()]
+    if payload.languages is not None:
+        update_data["languages"] = [l.strip() for l in payload.languages if l.strip()]
+
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        users_collection.update_one({"id": user_id}, {"$set": update_data})
+
+    fresh_user = users_collection.find_one({"id": user_id})
+    return {
+        "status": "SUCCESS",
+        "message": "Profile updated successfully",
+        "user": format_user_profile_response(fresh_user)
     }
 
 @app.get("/api/users/{target_user_id}")
