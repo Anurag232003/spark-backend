@@ -35,6 +35,8 @@ circle_post_likes_collection = db["circle_post_likes"]
 circle_comments_collection = db["circle_comments"]
 duos_collection = db["duos"]
 duo_interactions_collection = db["duo_interactions"]
+chemistry_profiles_collection = db["chemistry_profiles"]
+chemistry_sessions_collection = db["chemistry_sessions"]
 
 def init_db_indexes():
     """
@@ -132,6 +134,12 @@ def init_db_indexes():
         duos_collection.create_index([("status", 1)])
         duo_interactions_collection.create_index([("from_duo_id", 1), ("target_duo_id", 1)], unique=True)
         duo_interactions_collection.create_index([("target_duo_id", 1)])
+
+        # 12. Spark Chemistry Game collections
+        chemistry_profiles_collection.create_index([("user_id", 1)], unique=True)
+        chemistry_sessions_collection.create_index([("session_id", 1)], unique=True, sparse=True)
+        chemistry_sessions_collection.create_index([("match_id", 1)])
+        chemistry_sessions_collection.create_index([("created_at", -1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 

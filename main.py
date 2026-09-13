@@ -96,6 +96,15 @@ from services.double_date_service import (
     get_double_date_feed,
     swipe_duo,
 )
+from services.chemistry_service import (
+    get_game_modes,
+    get_game_questions,
+    save_user_vibe_profile,
+    get_user_vibe_profile,
+    compare_chemistry,
+    create_chat_game_challenge,
+    submit_chat_game_answers,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -1782,6 +1791,8 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
             "isScreenshot": m.get("is_screenshot", False),
             "isDateProposal": m.get("is_date_proposal", False),
             "dateProposal": m.get("date_proposal"),
+            "isChemistryChallenge": m.get("is_chemistry_challenge", False),
+            "chemistrySession": m.get("chemistry_session"),
             "timestamp": to_utc_iso(m.get("timestamp"))
         })
     return {
@@ -3399,4 +3410,151 @@ async def swipe_duo_endpoint(
         )
         return res
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ==============================================================================
+# SPARK CHEMISTRY GAME ENDPOINTS
+# ==============================================================================
+
+class SaveChemistryProfileRequest(BaseModel):
+    answers: Dict[str, str]
+
+class CompareChemistryRequest(BaseModel):
+    targetUserId: str
+    mode: str
+    answers: Dict[str, str]
+
+class CreateChemistryChallengeRequest(BaseModel):
+    matchId: str
+    mode: str
+
+class SubmitChemistrySessionRequest(BaseModel):
+    answers: Dict[str, str]
+
+@app.get("/api/chemistry/games")
+@limiter.limit("60/minute")
+async def get_chemistry_games_endpoint(request: Request):
+    return {"status": "SUCCESS", "games": get_game_modes()}
+
+@app.get("/api/chemistry/questions")
+@limiter.limit("60/minute")
+async def get_chemistry_questions_endpoint(
+    request: Request,
+    mode: str = Query("WOULD_YOU_RATHER"),
+    count: int = Query(5)
+):
+    questions = get_game_questions(mode=mode, count=count)
+    return {"status": "SUCCESS", "mode": mode, "questions": questions}
+
+@app.post("/api/chemistry/profile/save")
+@limiter.limit("30/minute")
+async def save_chemistry_profile_endpoint(
+    request: Request,
+    payload: SaveChemistryProfileRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    res = save_user_vibe_profile(user_id=user_id, answers=payload.answers)
+    return res
+
+@app.get("/api/chemistry/profile/{target_user_id}")
+@limiter.limit("60/minute")
+async def get_target_chemistry_profile_endpoint(
+    request: Request,
+    target_user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    res = get_user_vibe_profile(user_id=target_user_id)
+    return {"status": "SUCCESS", **res}
+
+@app.post("/api/chemistry/compare")
+@limiter.limit("45/minute")
+async def compare_chemistry_endpoint(
+    request: Request,
+    payload: CompareChemistryRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    res = compare_chemistry(
+        user_id=user_id,
+        target_user_id=payload.targetUserId,
+        mode=payload.mode,
+        my_answers=payload.answers
+    )
+    return res
+
+@app.post("/api/chemistry/challenge/create")
+@limiter.limit("30/minute")
+async def create_chemistry_challenge_endpoint(
+    request: Request,
+    payload: CreateChemistryChallengeRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        session = create_chat_game_challenge(
+            match_id=payload.matchId,
+            sender_id=user_id,
+            mode=payload.mode
+        )
+        
+        # Insert announcement message into match chat
+        notice_text = f"🎮 Spark Chemistry Challenge! Let's play '{payload.mode.replace('_', ' ').title()}'! Tap to see how our vibes align ✨"
+        msg_doc = {
+            "match_id": payload.matchId,
+            "sender_id": user_id,
+            "text": notice_text,
+            "is_screenshot": False,
+            "is_chemistry_challenge": True,
+            "chemistry_session": session,
+            "timestamp": datetime.utcnow()
+        }
+        messages_collection.insert_one(msg_doc)
+
+        # Broadcast via WebSocket
+        broadcast_payload = {
+            "id": str(msg_doc["_id"]),
+            "matchId": payload.matchId,
+            "senderId": user_id,
+            "senderName": current_user.get("name", "Spark Member"),
+            "senderPhoto": (current_user.get("photos", [])[0] if current_user.get("photos") else None),
+            "text": notice_text,
+            "isScreenshot": False,
+            "isChemistryChallenge": True,
+            "chemistrySession": session,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        # Check match participants
+        match = matches_collection.find_one({"_id": ObjectId(payload.matchId)}) or {}
+        participants = match.get("participants", [match.get("user1_id"), match.get("user2_id")])
+        for p_id in participants:
+            if p_id:
+                try:
+                    await manager.send_personal_message(broadcast_payload, p_id)
+                except Exception:
+                    pass
+
+        return {"status": "SUCCESS", "session": session}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/chemistry/session/{session_id}/submit")
+@limiter.limit("30/minute")
+async def submit_chemistry_session_endpoint(
+    request: Request,
+    session_id: str,
+    payload: SubmitChemistrySessionRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        res = submit_chat_game_answers(
+            session_id=session_id,
+            user_id=user_id,
+            answers=payload.answers
+        )
+        return {"status": "SUCCESS", **res}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
