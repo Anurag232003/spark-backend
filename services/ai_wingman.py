@@ -571,13 +571,14 @@ REVIVE_SUGGESTIONS = {
 
 async def call_gemini_llm(prompt: str) -> Optional[str]:
     """
-    Invokes Google Gemini 1.5 Flash via REST if GEMINI_API_KEY is configured.
-    Returns response text or None if failed / unconfigured.
+    Invokes Google Gemini via REST using GEMINI_API_KEY.
+    Tries gemini-flash-lite-latest first, falls back to gemini-flash-latest.
     """
-    if not GEMINI_API_KEY:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip() or GEMINI_API_KEY
+    if not api_key:
         return None
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    models_to_try = ["gemini-flash-lite-latest", "gemini-flash-latest"]
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -586,22 +587,26 @@ async def call_gemini_llm(prompt: str) -> Optional[str]:
             "topP": 0.95
         }
     }
+    data_bytes = json.dumps(payload).encode("utf-8")
 
-    try:
-        data_bytes = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            url,
-            data=data_bytes,
-            headers={"Content-Type": "application/json"},
-            method="POST"
-        )
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
-            if resp.status == 200:
-                res_data = json.loads(resp.read().decode("utf-8"))
-                text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-                return text.strip()
-    except Exception as e:
-        print(f"[AI_WINGMAN] Gemini API call skipped or timed out: {e}")
+    for model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        try:
+            req = urllib.request.Request(
+                url,
+                data=data_bytes,
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=6.0) as resp:
+                if resp.status == 200:
+                    res_data = json.loads(resp.read().decode("utf-8"))
+                    text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+                    return text.strip()
+        except Exception as e:
+            print(f"[AI_WINGMAN] Gemini {model_name} attempt skipped/failed: {e}")
+            continue
+
     return None
 
 
