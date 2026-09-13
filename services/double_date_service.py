@@ -81,13 +81,13 @@ def create_duo_invite(
     existing = get_user_duo(user_id)
     if existing:
         if existing["status"] == "ACTIVE":
-            raise ValueError(f"You already have an active squad: {existing['squadName']}. Disband it before creating a new one.")
+            raise ValueError(f"You already have an active group: {existing['squadName']}. Delete it before creating a new one.")
         elif existing["status"] == "PENDING" and existing["isCreator"]:
-            # Update existing pending squad
+            # Update existing pending squad/group
             duos_collection.update_one(
                 {"_id": ObjectId(existing["id"])},
                 {"$set": {
-                    "squad_name": squad_name.strip() or "Dynamic Duo",
+                    "squad_name": squad_name.strip() or "Double Date Group",
                     "vibe": vibe.strip() or "Chill & Fun",
                     "preference": preference,
                     "updated_at": datetime.utcnow()
@@ -102,7 +102,7 @@ def create_duo_invite(
 
     duo_doc = {
         "invite_code": invite_code,
-        "squad_name": squad_name.strip() or "Dynamic Duo",
+        "squad_name": squad_name.strip() or "Double Date Group",
         "vibe": vibe.strip() or "Chill & Fun",
         "preference": preference,
         "user1_id": user_id,
@@ -118,20 +118,20 @@ def create_duo_invite(
 
 def join_duo_by_code(code: str, joining_user_id: str) -> Dict[str, Any]:
     """
-    Friend enters the invite code to join the squad and activate the duo.
+    Friend enters the invite code to join the group and activate the pair.
     """
     clean_code = code.strip().upper()
     duo = duos_collection.find_one({"invite_code": clean_code, "status": "PENDING"})
     if not duo:
-        raise ValueError("Invalid or expired Duo Invite Code. Please check with your friend.")
+        raise ValueError("Invalid or expired Invite Code. Please check with your friend.")
 
     if duo.get("user1_id") == joining_user_id:
-        raise ValueError("You cannot join your own squad with your own invite code!")
+        raise ValueError("You cannot join your own group with your own invite code!")
 
-    # Check if joining user is in another squad
+    # Check if joining user is in another group
     existing = get_user_duo(joining_user_id)
     if existing:
-        raise ValueError(f"You are already in squad '{existing['squadName']}'. Please leave it first.")
+        raise ValueError(f"You are already in group '{existing['squadName']}'. Please leave it first.")
 
     duos_collection.update_one(
         {"_id": duo["_id"]},
@@ -147,20 +147,20 @@ def join_duo_by_code(code: str, joining_user_id: str) -> Dict[str, Any]:
 
 def disband_duo(user_id: str) -> Dict[str, Any]:
     """
-    Leaves or disbands user's active/pending squad.
+    Leaves or deletes user's active/pending group.
     """
     duo = duos_collection.find_one({
         "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
         "status": {"$in": ["PENDING", "ACTIVE"]}
     })
     if not duo:
-        return {"status": "SUCCESS", "message": "No active squad to disband."}
+        return {"status": "SUCCESS", "message": "No active group to leave."}
 
     duos_collection.update_one(
         {"_id": duo["_id"]},
         {"$set": {"status": "DISBANDED", "disbanded_at": datetime.utcnow()}}
     )
-    return {"status": "SUCCESS", "message": "Squad disbanded successfully."}
+    return {"status": "SUCCESS", "message": "Group left successfully."}
 
 def get_double_date_feed(user_id: str, limit: int = 20) -> Dict[str, Any]:
     """
@@ -232,7 +232,7 @@ def swipe_duo(user_id: str, target_duo_id: str, action: str) -> Dict[str, Any]:
     """
     my_duo = get_user_duo(user_id)
     if not my_duo or my_duo["status"] != "ACTIVE":
-        raise ValueError("You must be in an active squad to swipe on double dates.")
+        raise ValueError("You must be in an active group to swipe on double dates.")
 
     my_duo_id = my_duo["id"]
     action_clean = action.strip().upper()
@@ -300,7 +300,7 @@ def swipe_duo(user_id: str, target_duo_id: str, action: str) -> Dict[str, Any]:
             match_id = str(inserted.inserted_id)
 
             # Insert opening group celebration message
-            conf_text = f"🎉 Double Date Match! {squad1_name} and {squad2_name} have matched! Say hi and plan a 2v2 hangout! 🎳🍕"
+            conf_text = f"🎉 Double Date Match! {squad1_name} and {squad2_name} have connected! Say hi and plan a fun double date! 🎳🍕"
             first_msg = {
                 "match_id": match_id,
                 "sender_id": user_id,
@@ -337,5 +337,5 @@ def swipe_duo(user_id: str, target_duo_id: str, action: str) -> Dict[str, Any]:
     return {
         "status": "LIKED",
         "isMatch": False,
-        "message": "Duo Like sent! If they like your squad back, you'll be connected in a 4-person group chat!"
+        "message": "Double Date Like sent! If they like your group back, you'll be connected in a 4-person group chat!"
     }

@@ -1415,7 +1415,7 @@ def get_my_matches(current_user: dict = Depends(get_current_user)):
                 {"match_id": match_str_id},
                 sort=[("timestamp", -1)]
             )
-            last_msg_text = last_msg_doc["text"] if last_msg_doc else f"🎉 2v2 Match with {squad_name}!"
+            last_msg_text = last_msg_doc["text"] if last_msg_doc else f"🎉 Double Date with {squad_name}!"
 
             match_list.append({
                 "matchId": match_str_id,
