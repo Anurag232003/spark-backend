@@ -74,6 +74,7 @@ from ml_services.verification import verify_user_selfie
 from services.notifier import send_sms_otp
 from services.feed_ranking import rank_feed_candidates, compute_candidate_score
 from services.ai_wingman import generate_icebreakers, generate_chat_revivers, generate_profile_coach
+from services.date_planner import generate_date_ideas, build_google_calendar_url
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -1708,6 +1709,8 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
             "senderId": m["sender_id"],
             "text": m["text"],
             "isScreenshot": m.get("is_screenshot", False),
+            "isDateProposal": m.get("is_date_proposal", False),
+            "dateProposal": m.get("date_proposal"),
             "timestamp": to_utc_iso(m.get("timestamp"))
         })
     return {"status": "SUCCESS", "messages": history}
@@ -2795,4 +2798,247 @@ def get_wingman_profile_coach(
     return {
         "status": "SUCCESS",
         **result
+    }
+
+# ==============================================================================
+# DATE PLANNER — REAL-WORLD DATE ENGINE
+# ==============================================================================
+
+class DateIdeasRequest(BaseModel):
+    matchId: str
+    budget: Optional[str] = "500"
+    activity: Optional[str] = "coffee"
+    timeSlot: Optional[str] = "Saturday, 5:30 PM"
+    cityOrArea: Optional[str] = None
+
+class DateProposalRequest(BaseModel):
+    matchId: str
+    planId: Optional[str] = None
+    title: str
+    activity: str
+    budget: str
+    vibe: str
+    duration: str
+    description: str
+    suggestedTime: str
+    location: Optional[str] = "Nearby"
+
+class DateResponseRequest(BaseModel):
+    matchId: str
+    proposalId: str
+    action: str  # "ACCEPT" | "DECLINE"
+
+@app.post("/api/date-planner/ideas")
+@limiter.limit("30/minute")
+async def get_date_ideas(
+    request: Request,
+    payload: DateIdeasRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        obj_id = ObjectId(payload.matchId)
+        match_query = {"_id": obj_id}
+    except Exception:
+        match_query = {"_id": payload.matchId}
+
+    match = matches_collection.find_one({
+        **match_query,
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found.")
+
+    other_user_id = match["user2_id"] if match["user1_id"] == user_id else match["user1_id"]
+    other_user = users_collection.find_one({"id": other_user_id})
+    if not other_user:
+        raise HTTPException(status_code=404, detail="Match partner profile not found.")
+
+    ideas = await generate_date_ideas(
+        user1_profile=current_user,
+        user2_profile=other_user,
+        budget=payload.budget or "500",
+        activity=payload.activity or "coffee",
+        time_slot=payload.timeSlot or "Saturday, 5:30 PM",
+        city_or_area=payload.cityOrArea
+    )
+
+    return {
+        "status": "SUCCESS",
+        "matchName": other_user.get("name", "Match"),
+        "matchPhoto": other_user.get("photos", [""])[0] if other_user.get("photos") else "",
+        "ideas": ideas
+    }
+
+@app.post("/api/date-planner/propose")
+@limiter.limit("20/minute")
+async def propose_date_plan(
+    request: Request,
+    payload: DateProposalRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        obj_id = ObjectId(payload.matchId)
+        match_query = {"_id": obj_id}
+    except Exception:
+        match_query = {"_id": payload.matchId}
+
+    match = matches_collection.find_one({
+        **match_query,
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found.")
+
+    u1 = match.get("user1_id")
+    u2 = match.get("user2_id")
+    receiver_id = u2 if user_id == u1 else u1
+    other_user = users_collection.find_one({"id": receiver_id}) or {}
+
+    proposal_id = payload.planId or str(uuid.uuid4())[:8]
+    cal_url = build_google_calendar_url(
+        title=f"{payload.title} with {other_user.get('name', 'Match')}",
+        description=f"Plan: {payload.description}\nVibe: {payload.vibe}\nBudget: {payload.budget}\nTime: {payload.suggestedTime}",
+        location=payload.location or "Agreed Venue"
+    )
+
+    date_proposal_data = {
+        "proposalId": proposal_id,
+        "title": payload.title,
+        "activity": payload.activity,
+        "budget": payload.budget,
+        "vibe": payload.vibe,
+        "duration": payload.duration,
+        "description": payload.description,
+        "suggestedTime": payload.suggestedTime,
+        "location": payload.location or "Nearby",
+        "status": "PENDING",
+        "proposedBy": user_id,
+        "calendarUrl": cal_url,
+        "createdAt": datetime.utcnow().isoformat()
+    }
+
+    msg_doc = {
+        "match_id": payload.matchId,
+        "sender_id": user_id,
+        "receiver_id": receiver_id,
+        "text": f"📅 Date Plan Proposed: {payload.title}",
+        "is_screenshot": False,
+        "is_date_proposal": True,
+        "date_proposal": date_proposal_data,
+        "timestamp": datetime.utcnow()
+    }
+    inserted = messages_collection.insert_one(msg_doc)
+
+    resp_payload = {
+        "id": str(inserted.inserted_id),
+        "matchId": payload.matchId,
+        "senderId": user_id,
+        "receiverId": receiver_id,
+        "text": msg_doc["text"],
+        "isScreenshot": False,
+        "isDateProposal": True,
+        "dateProposal": date_proposal_data,
+        "timestamp": to_utc_iso(msg_doc["timestamp"])
+    }
+
+    try:
+        await manager.send_personal_message(resp_payload, user_id)
+        await manager.send_personal_message(resp_payload, receiver_id)
+    except Exception:
+        pass
+
+    return {
+        "status": "SUCCESS",
+        "message": resp_payload,
+        "dateProposal": date_proposal_data
+    }
+
+@app.post("/api/date-planner/respond")
+@limiter.limit("20/minute")
+async def respond_to_date_plan(
+    request: Request,
+    payload: DateResponseRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        obj_id = ObjectId(payload.matchId)
+        match_query = {"_id": obj_id}
+    except Exception:
+        match_query = {"_id": payload.matchId}
+
+    match = matches_collection.find_one({
+        **match_query,
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found.")
+
+    u1 = match.get("user1_id")
+    u2 = match.get("user2_id")
+    other_user_id = u2 if user_id == u1 else u1
+
+    action_norm = payload.action.upper()
+    new_status = "ACCEPTED" if action_norm in ["ACCEPT", "ACCEPTED"] else "DECLINED"
+
+    # Find the proposal message
+    proposal_msg = messages_collection.find_one({
+        "match_id": payload.matchId,
+        "is_date_proposal": True,
+        "date_proposal.proposalId": payload.proposalId
+    })
+
+    if not proposal_msg:
+        raise HTTPException(status_code=404, detail="Date proposal not found.")
+
+    current_prop = proposal_msg.get("date_proposal", {})
+    current_prop["status"] = new_status
+    current_prop["respondedBy"] = user_id
+    current_prop["respondedAt"] = datetime.utcnow().isoformat()
+
+    messages_collection.update_one(
+        {"_id": proposal_msg["_id"]},
+        {"$set": {"date_proposal": current_prop}}
+    )
+
+    # Insert confirmation message into chat
+    if new_status == "ACCEPTED":
+        conf_text = f"🎉 Date Confirmed! See you for {current_prop.get('title', 'the date')} ({current_prop.get('suggestedTime', '')}) ✨"
+    else:
+        conf_text = f"Date plan declined. Let's suggest another time or activity!"
+
+    conf_doc = {
+        "match_id": payload.matchId,
+        "sender_id": user_id,
+        "receiver_id": other_user_id,
+        "text": conf_text,
+        "is_screenshot": False,
+        "is_date_proposal": False,
+        "timestamp": datetime.utcnow()
+    }
+    inserted = messages_collection.insert_one(conf_doc)
+    conf_payload = {
+        "id": str(inserted.inserted_id),
+        "matchId": payload.matchId,
+        "senderId": user_id,
+        "receiverId": other_user_id,
+        "text": conf_text,
+        "isScreenshot": False,
+        "isDateProposal": False,
+        "timestamp": to_utc_iso(conf_doc["timestamp"]),
+        "updatedProposal": current_prop
+    }
+
+    try:
+        await manager.send_personal_message(conf_payload, user_id)
+        await manager.send_personal_message(conf_payload, other_user_id)
+    except Exception:
+        pass
+
+    return {
+        "status": "SUCCESS",
+        "action": new_status,
+        "dateProposal": current_prop
     }
