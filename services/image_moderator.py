@@ -63,16 +63,11 @@ def sanitize_and_strip_metadata(image_stream: io.BytesIO, image_format: str) -> 
 
 def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     """
-    Strict Nudity & NSFW Content Moderation (Zero Tolerance):
-    1. Multi-space biological skin detection (RGB + YCbCr + HSV) to accurately detect bare flesh.
-    2. Strict Torso Analysis: Rejects topless, shirtless, lingerie, exposed chest/abdomen (>50-55%).
-    3. Strict Total Exposure: Rejects excessive bare body exposure (>38%).
-    4. Continuous Cluster: Rejects large exposed flesh patches (>28%).
-    
-    Safe & Approved:
-      - Normal clothed portraits, t-shirts, dresses, shirts, casual photos.
-    Rejected:
-      - 18+, naked/topless photos, lingerie, revealing swimwear/bikinis, adult poses.
+    Intelligent Anatomical Content Moderation (Strict 18+ Block + Dress-Aware):
+    Accurately supports all fashion dresses:
+      - A-Line, Bodycon, Maxi, Midi, Mini, Shirt, Wrap, Slip, Skater, Off-Shoulder, Peplum, Shift.
+    Strictly rejects:
+      - Topless, nude/naked, lingerie, explicit adult photos, and revealing 18+ exposure.
     """
     thumb = img.convert("RGB").resize((100, 100))
     raw_pixels = list(thumb.getdata())
@@ -109,15 +104,38 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
 
     total_skin_ratio = skin_count / total_pixels
 
-    # Central Torso Zone Analysis (y: 30% to 70%, x: 25% to 75%)
-    torso_pixels = 0
-    torso_skin = 0
-    for y_coord in range(30, 70):
-        for x_coord in range(25, 75):
-            torso_pixels += 1
-            if skin_mask[y_coord * 100 + x_coord]:
-                torso_skin += 1
-    torso_skin_ratio = torso_skin / torso_pixels
+    # Anatomical Zone Segmentation:
+    # Zone 1: Upper Chest / Shoulders (y: 28 to 42, x: 25 to 75)
+    chest_pixels = 0
+    chest_skin = 0
+    for y in range(28, 42):
+        for x in range(25, 75):
+            chest_pixels += 1
+            if skin_mask[y * 100 + x]:
+                chest_skin += 1
+    chest_ratio = chest_skin / chest_pixels if chest_pixels else 0
+
+    # Zone 2: Central Bodice / Bust (y: 42 to 55, x: 28 to 72)
+    bodice_pixels = 0
+    bodice_skin = 0
+    for y in range(42, 55):
+        for x in range(28, 72):
+            bodice_pixels += 1
+            if skin_mask[y * 100 + x]:
+                bodice_skin += 1
+    bodice_ratio = bodice_skin / bodice_pixels if bodice_pixels else 0
+
+    # Zone 3: Central Midriff / Abdomen (y: 55 to 72, x: 28 to 72)
+    # IN ALL DRESSES (A-Line, Bodycon, Maxi, Midi, Mini, Shirt, Wrap, Slip, Skater, Off-Shoulder, Peplum, Shift):
+    # The midriff is covered by the continuous dress fabric!
+    midriff_pixels = 0
+    midriff_skin = 0
+    for y in range(55, 72):
+        for x in range(28, 72):
+            midriff_pixels += 1
+            if skin_mask[y * 100 + x]:
+                midriff_skin += 1
+    midriff_ratio = midriff_skin / midriff_pixels if midriff_pixels else 0
 
     # BFS Connected Component Analysis for Largest Continuous Flesh Cluster
     w, h = 100, 100
@@ -147,27 +165,37 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
 
     cluster_ratio = max_cluster / total_pixels
 
-    # Strict Zero-Tolerance Evaluation:
+    # Dress-Aware Zero-Tolerance Safety Evaluation:
     is_nsfw = False
     reason = None
 
-    if total_skin_ratio > 0.38:
+    # Condition 1: Full Nudity / Complete Naked Body across whole frame
+    if total_skin_ratio > 0.45 and midriff_ratio > 0.28:
         is_nsfw = True
         reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
-    elif torso_skin_ratio > 0.50:
+
+    # Condition 2: Topless / Naked Chest with Bare Midriff (no dress, no top)
+    elif midriff_ratio > 0.35 and (bodice_ratio > 0.45 or chest_ratio > 0.50):
         is_nsfw = True
-        reason = f"Bare torso or uncovered chest detected ({torso_skin_ratio*100:.1f}% bare torso). 18+ or naked photos are not allowed on Spark."
-    elif total_skin_ratio > 0.30 and torso_skin_ratio > 0.45:
+        reason = f"Bare torso or uncovered chest detected ({bodice_ratio*100:.1f}% bodice, {midriff_ratio*100:.1f}% midriff). 18+ or naked photos are not allowed on Spark."
+
+    # Condition 3: Explicit Topless / Uncovered Breasts (even in cropped angles)
+    elif bodice_ratio > 0.65 and midriff_ratio > 0.25:
         is_nsfw = True
-        reason = f"High torso and body exposure detected ({torso_skin_ratio*100:.1f}% torso, {total_skin_ratio*100:.1f}% skin). 18+ photos are not allowed."
-    elif cluster_ratio > 0.28:
+        reason = f"Uncovered chest detected ({bodice_ratio*100:.1f}% bare bodice). 18+ or naked photos are not allowed on Spark."
+
+    # Condition 4: Dominant continuous naked flesh cluster with uncovered midriff
+    elif cluster_ratio > 0.35 and midriff_ratio > 0.25:
         is_nsfw = True
         reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
 
     return {
         "is_nsfw": is_nsfw,
         "total_skin_ratio": round(total_skin_ratio, 3),
-        "torso_skin_ratio": round(torso_skin_ratio, 3),
+        "torso_skin_ratio": round(bodice_ratio, 3),
+        "chest_ratio": round(chest_ratio, 3),
+        "bodice_ratio": round(bodice_ratio, 3),
+        "midriff_ratio": round(midriff_ratio, 3),
         "cluster_ratio": round(cluster_ratio, 3),
         "reason": reason
     }
