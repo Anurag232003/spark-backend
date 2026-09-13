@@ -32,8 +32,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#0f2027", "#203a43", "#2c5364"],
         "description": "Ind vs Pak match screening plans, IPL rivalry discussions, box turf cricket matches on weekends, and pure cricket obsession!",
         "tags": ["Cricket", "IPL", "Team India", "Turf Cricket"],
-        "member_count": 1420,
-        "post_count": 89,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "gaming-squad",
@@ -44,8 +44,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#1f1c2c", "#928dab", "#2c3e50"],
         "description": "Find duo partners for Valorant rank push, late-night BGMI squad matches, PS5 enthusiasts, and chill Discord hangout gaming sessions.",
         "tags": ["Valorant", "BGMI", "Steam", "PlayStation", "Discord"],
-        "member_count": 1180,
-        "post_count": 74,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "harry-potter",
@@ -56,8 +56,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#3a1c71", "#d76d77", "#ffaf7b"],
         "description": "Gryffindor vs Slytherin debates, Potter trivia, butterbeer cafe meetups, and finding someone who understands your magical references.",
         "tags": ["Potterhead", "Hogwarts", "Gryffindor", "Slytherin"],
-        "member_count": 960,
-        "post_count": 62,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "college-campus",
@@ -68,8 +68,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#11998e", "#38ef7d", "#0575e6"],
         "description": "College fests, exam study dates, campus gossip, canteen chai breaks, and connecting with students from your city.",
         "tags": ["College Life", "Fests", "Canteen Chai", "Campus Dating"],
-        "member_count": 2150,
-        "post_count": 145,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "coffee-lovers",
@@ -80,8 +80,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#3e2723", "#4e342e", "#8d6e63"],
         "description": "Third-wave cafes, specialty espresso roasters, aesthetic work-from-cafe afternoons, and finding the perfect first coffee date partner.",
         "tags": ["Espresso", "Specialty Coffee", "Cafe Hopper", "Cold Brew"],
-        "member_count": 1340,
-        "post_count": 98,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "gym-fitness",
@@ -92,8 +92,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#141e30", "#243b55", "#e52d27"],
         "description": "Push/Pull/Legs splits, workout motivation, morning running clubs, healthy protein recipe swaps, and fitness accountability buddies.",
         "tags": ["Gym Bro", "Calisthenics", "Running", "Fitness Date"],
-        "member_count": 1670,
-        "post_count": 112,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "music-concerts",
@@ -104,8 +104,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#8e2de2", "#4a00e0", "#f107a3"],
         "description": "Indie concerts, EDM festivals, sharing Spotify blends, acoustic guitar jams, and finding someone who shares your music taste.",
         "tags": ["Indie Music", "Concerts", "Spotify Blend", "Sunburn"],
-        "member_count": 1520,
-        "post_count": 87,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "cinephiles-cinema",
@@ -116,8 +116,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#232526", "#414345", "#e65c00"],
         "description": "Nolan mindbenders, late-night Anime binges, classic Bollywood romance, film festivals, and finding your IMAX seatmate.",
         "tags": ["Cinema", "Anime", "Bollywood", "Movie Date"],
-        "member_count": 1290,
-        "post_count": 80,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "tech-builders",
@@ -128,8 +128,8 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#0f0c29", "#302b63", "#24243e"],
         "description": "Tech founders, developers, AI tinkerers, UI/UX designers, and ambitious creators building the future over weekend hackathons.",
         "tags": ["Startups", "AI", "Coding", "Tech Networking"],
-        "member_count": 1050,
-        "post_count": 68,
+        "member_count": 0,
+        "post_count": 0,
     },
     {
         "slug": "travel-roadtrips",
@@ -140,15 +140,15 @@ DEFAULT_CIRCLES = [
         "bannerGradient": ["#134e5e", "#71b280", "#2c7744"],
         "description": "Himalayan treks, weekend road trips, monsoon drives, beach camping, and discovering hidden travel gems across India.",
         "tags": ["Roadtrips", "Trekking", "Mountains", "Wanderlust"],
-        "member_count": 1410,
-        "post_count": 91,
+        "member_count": 0,
+        "post_count": 0,
     },
 ]
 
 def ensure_seeded_circles():
     """
     Ensures all default circles exist in the database on startup.
-    Idempotent: updates missing circles without wiping community data.
+    Idempotent: updates missing circles and syncs strictly real member and post counts.
     """
     try:
         for c in DEFAULT_CIRCLES:
@@ -156,12 +156,14 @@ def ensure_seeded_circles():
             if not existing:
                 doc = {
                     **c,
+                    "member_count": 0,
+                    "post_count": 0,
                     "created_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow(),
                 }
                 circles_collection.insert_one(doc)
             else:
-                # Keep metadata fresh without resetting counts
+                # Keep metadata fresh
                 circles_collection.update_one(
                     {"slug": c["slug"]},
                     {"$set": {
@@ -174,12 +176,25 @@ def ensure_seeded_circles():
                         "tags": c["tags"],
                     }}
                 )
+
+        # Sync strictly accurate real counts across all circles
+        for c in circles_collection.find({}):
+            c_id = str(c["_id"])
+            real_members = circle_members_collection.count_documents({"circle_id": c_id})
+            real_posts = circle_posts_collection.count_documents({"circle_id": c_id})
+            circles_collection.update_one(
+                {"_id": c["_id"]},
+                {"$set": {
+                    "member_count": real_members,
+                    "post_count": real_posts,
+                }}
+            )
     except Exception as e:
         print(f"[CIRCLES] ensure_seeded_circles error: {e}")
 
 def get_circles_list(user_id: str, category: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Returns list of circles with membership status and activity for the user.
+    Returns list of circles with membership status and strictly real counts for the user.
     """
     query: Dict[str, Any] = {}
     if category and category.lower() != "all":
@@ -199,10 +214,9 @@ def get_circles_list(user_id: str, category: Optional[str] = None) -> List[Dict[
         c_id = str(c["_id"])
         is_joined = c_id in joined_circle_ids
         
-        # Real-time member count check
+        # Real-time member and post count strictly from actual database collections
         actual_members = circle_members_collection.count_documents({"circle_id": c_id})
-        base_members = c.get("member_count", 100)
-        display_members = max(base_members, actual_members)
+        actual_posts = circle_posts_collection.count_documents({"circle_id": c_id})
 
         result.append({
             "id": c_id,
@@ -214,18 +228,18 @@ def get_circles_list(user_id: str, category: Optional[str] = None) -> List[Dict[
             "bannerGradient": c.get("bannerGradient", ["#784cfb", "#ff3366"]),
             "description": c.get("description", ""),
             "tags": c.get("tags", []),
-            "memberCount": display_members,
-            "postCount": c.get("post_count", 0),
+            "memberCount": actual_members,
+            "postCount": actual_posts,
             "isJoined": is_joined,
         })
 
-    # Sort joined circles first, then member count
-    result.sort(key=lambda x: (not x["isJoined"], -x["memberCount"]))
+    # Sort joined circles first, then member count, then name
+    result.sort(key=lambda x: (not x["isJoined"], -x["memberCount"], x["name"]))
     return result
 
 def get_circle_detail(circle_id: str, user_id: str) -> Optional[Dict[str, Any]]:
     """
-    Fetches detailed view of a specific circle.
+    Fetches detailed view of a specific circle with strictly real counts.
     """
     try:
         obj_id = ObjectId(circle_id)
@@ -240,7 +254,7 @@ def get_circle_detail(circle_id: str, user_id: str) -> Optional[Dict[str, Any]]:
     c_id = str(c["_id"])
     is_joined = bool(circle_members_collection.find_one({"circle_id": c_id, "user_id": user_id}))
     actual_members = circle_members_collection.count_documents({"circle_id": c_id})
-    base_members = c.get("member_count", 100)
+    actual_posts = circle_posts_collection.count_documents({"circle_id": c_id})
 
     return {
         "id": c_id,
@@ -252,8 +266,8 @@ def get_circle_detail(circle_id: str, user_id: str) -> Optional[Dict[str, Any]]:
         "bannerGradient": c.get("bannerGradient", ["#784cfb", "#ff3366"]),
         "description": c.get("description", ""),
         "tags": c.get("tags", []),
-        "memberCount": max(base_members, actual_members),
-        "postCount": c.get("post_count", 0),
+        "memberCount": actual_members,
+        "postCount": actual_posts,
         "isJoined": is_joined,
     }
 
@@ -270,24 +284,25 @@ def join_circle(circle_id: str, user_id: str) -> Dict[str, Any]:
         {"$setOnInsert": {"circle_id": circle_id, "user_id": user_id, "joined_at": datetime.utcnow()}},
         upsert=True
     )
-    # Increment member counter
+    # Sync exact real count
+    actual_count = circle_members_collection.count_documents({"circle_id": circle_id})
     circles_collection.update_one(
         {"_id": ObjectId(circle_id) if ObjectId.is_valid(circle_id) else circle_id},
-        {"$inc": {"member_count": 1}}
+        {"$set": {"member_count": actual_count}}
     )
-    return {"status": "SUCCESS", "isJoined": True, "circleId": circle_id}
+    return {"status": "SUCCESS", "isJoined": True, "circleId": circle_id, "memberCount": actual_count}
 
 def leave_circle(circle_id: str, user_id: str) -> Dict[str, Any]:
     """
     Removes user from the circle membership.
     """
-    deleted = circle_members_collection.delete_one({"circle_id": circle_id, "user_id": user_id})
-    if deleted.deleted_count > 0:
-        circles_collection.update_one(
-            {"_id": ObjectId(circle_id) if ObjectId.is_valid(circle_id) else circle_id},
-            {"$inc": {"member_count": -1}}
-        )
-    return {"status": "SUCCESS", "isJoined": False, "circleId": circle_id}
+    circle_members_collection.delete_one({"circle_id": circle_id, "user_id": user_id})
+    actual_count = circle_members_collection.count_documents({"circle_id": circle_id})
+    circles_collection.update_one(
+        {"_id": ObjectId(circle_id) if ObjectId.is_valid(circle_id) else circle_id},
+        {"$set": {"member_count": actual_count}}
+    )
+    return {"status": "SUCCESS", "isJoined": False, "circleId": circle_id, "memberCount": actual_count}
 
 def get_circle_posts(circle_id: str, user_id: str, limit: int = 30, skip: int = 0) -> List[Dict[str, Any]]:
     """
@@ -404,17 +419,19 @@ def create_circle_post(
     inserted = circle_posts_collection.insert_one(post_doc)
     post_id = str(inserted.inserted_id)
 
-    # Increment post count in circle
-    circles_collection.update_one(
-        {"_id": ObjectId(circle_id) if ObjectId.is_valid(circle_id) else circle_id},
-        {"$inc": {"post_count": 1}}
-    )
-
     # Auto join user to circle if they posted in it
     circle_members_collection.update_one(
         {"circle_id": circle_id, "user_id": user_id},
         {"$setOnInsert": {"circle_id": circle_id, "user_id": user_id, "joined_at": datetime.utcnow()}},
         upsert=True
+    )
+
+    # Sync real counts in circle
+    actual_posts = circle_posts_collection.count_documents({"circle_id": circle_id})
+    actual_members = circle_members_collection.count_documents({"circle_id": circle_id})
+    circles_collection.update_one(
+        {"_id": ObjectId(circle_id) if ObjectId.is_valid(circle_id) else circle_id},
+        {"$set": {"post_count": actual_posts, "member_count": actual_members}}
     )
 
     return {
