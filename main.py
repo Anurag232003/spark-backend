@@ -105,6 +105,15 @@ from services.chemistry_service import (
     create_chat_game_challenge,
     submit_chat_game_answers,
 )
+from services.safety_service import (
+    get_trusted_contacts,
+    save_trusted_contact,
+    delete_trusted_contact,
+    start_date_checkin,
+    update_date_checkin_status,
+    get_active_date_checkin,
+    INDIA_SAFETY_RESOURCES,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -3557,4 +3566,86 @@ async def submit_chemistry_session_endpoint(
         return {"status": "SUCCESS", **res}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# --- 18. Spark Date Safety Center Endpoints ---
+class SaveTrustedContactRequest(BaseModel):
+    id: Optional[str] = None
+    name: str
+    phone: str
+    relationship: str = "Friend"
+    isPrimary: bool = False
+
+class StartDateCheckinRequest(BaseModel):
+    matchId: Optional[str] = None
+    partnerName: str = "Date Partner"
+    locationName: str = "Cafe / Public Place"
+    durationMinutes: int = 120
+
+class UpdateDateCheckinStatusRequest(BaseModel):
+    status: str
+
+@app.get("/api/safety/resources")
+def get_safety_resources_endpoint():
+    """Returns official Indian emergency hotlines and scam awareness guides."""
+    return {"status": "SUCCESS", "resources": INDIA_SAFETY_RESOURCES}
+
+@app.get("/api/safety/trusted-contacts")
+def get_trusted_contacts_endpoint(current_user: dict = Depends(get_current_user)):
+    """Fetches user's saved emergency trusted contacts."""
+    user_id = current_user["id"]
+    contacts = get_trusted_contacts(user_id)
+    return {"status": "SUCCESS", "contacts": contacts}
+
+@app.post("/api/safety/trusted-contacts")
+def save_trusted_contact_endpoint(payload: SaveTrustedContactRequest, current_user: dict = Depends(get_current_user)):
+    """Saves or updates a trusted emergency contact."""
+    user_id = current_user["id"]
+    try:
+        saved = save_trusted_contact(user_id, payload.dict())
+        return {"status": "SUCCESS", "contact": saved}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/safety/trusted-contacts/{contact_id}")
+def delete_trusted_contact_endpoint(contact_id: str, current_user: dict = Depends(get_current_user)):
+    """Removes a trusted contact."""
+    user_id = current_user["id"]
+    success = delete_trusted_contact(user_id, contact_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Contact not found.")
+    return {"status": "SUCCESS", "deleted": True}
+
+@app.post("/api/safety/checkin/start")
+def start_date_checkin_endpoint(payload: StartDateCheckinRequest, current_user: dict = Depends(get_current_user)):
+    """Starts an active date check-in safety timer."""
+    user_id = current_user["id"]
+    checkin = start_date_checkin(
+        user_id=user_id,
+        match_id=payload.matchId,
+        partner_name=payload.partnerName,
+        location_name=payload.locationName,
+        duration_minutes=payload.durationMinutes,
+    )
+    return {"status": "SUCCESS", "checkin": checkin}
+
+@app.post("/api/safety/checkin/{checkin_id}/status")
+def update_date_checkin_status_endpoint(
+    checkin_id: str,
+    payload: UpdateDateCheckinStatusRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Updates status (COMPLETED_SAFE, SOS_TRIGGERED, CANCELLED)."""
+    user_id = current_user["id"]
+    try:
+        updated = update_date_checkin_status(user_id, checkin_id, payload.status)
+        return {"status": "SUCCESS", "checkin": updated}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/safety/checkin/active")
+def get_active_date_checkin_endpoint(current_user: dict = Depends(get_current_user)):
+    """Fetches user's currently active date checkin if any."""
+    user_id = current_user["id"]
+    checkin = get_active_date_checkin(user_id)
+    return {"status": "SUCCESS", "activeCheckin": checkin}
 

@@ -37,6 +37,8 @@ duos_collection = db["duos"]
 duo_interactions_collection = db["duo_interactions"]
 chemistry_profiles_collection = db["chemistry_profiles"]
 chemistry_sessions_collection = db["chemistry_sessions"]
+trusted_contacts_collection = db["trusted_contacts"]
+date_checkins_collection = db["date_checkins"]
 
 def init_db_indexes():
     """
@@ -140,6 +142,12 @@ def init_db_indexes():
         chemistry_sessions_collection.create_index([("session_id", 1)], unique=True, sparse=True)
         chemistry_sessions_collection.create_index([("match_id", 1)])
         chemistry_sessions_collection.create_index([("created_at", -1)])
+
+        # 13. Date Safety Center collections
+        trusted_contacts_collection.create_index([("user_id", 1)], unique=True)
+        date_checkins_collection.create_index([("checkin_id", 1)], unique=True, sparse=True)
+        date_checkins_collection.create_index([("user_id", 1), ("status", 1)])
+        date_checkins_collection.create_index([("created_at", -1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 
