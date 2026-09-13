@@ -138,6 +138,18 @@ async def secure_transport_and_headers_middleware(request: Request, call_next):
 
     return response
 
+def to_utc_iso(dt) -> str:
+    """
+    Serializes a datetime to an explicit UTC ISO-8601 string with 'Z' suffix.
+    Ensures client devices (phones/browsers) parse it as UTC and convert to their local timezone.
+    """
+    if not dt:
+        return ""
+    if isinstance(dt, datetime):
+        iso = dt.isoformat()
+        return iso if iso.endswith("Z") or ("+" in iso[10:] or "-" in iso[10:]) else iso + "Z"
+    return str(dt)
+
 # --- 24-Hour Match Expiry Background Worker ---
 def expire_stale_matches():
     """
@@ -1407,8 +1419,8 @@ def get_my_matches(current_user: dict = Depends(get_current_user)):
                 "userId": other_user["id"],
                 "name": other_user["name"],
                 "photo": other_user.get("photos", [""])[0] if other_user.get("photos") else "",
-                "deadline": deadline.isoformat() if deadline else "",
-                "firstMoveDeadline": deadline.isoformat() if deadline else None,
+                "deadline": to_utc_iso(deadline),
+                "firstMoveDeadline": to_utc_iso(deadline) if deadline else None,
                 "firstMoveMade": has_first_move,
                 "firstMoverId": m.get("first_mover_id"),
                 "isYourTurnToMove": (
@@ -1695,7 +1707,7 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
             "senderId": m["sender_id"],
             "text": m["text"],
             "isScreenshot": m.get("is_screenshot", False),
-            "timestamp": m["timestamp"].isoformat()
+            "timestamp": to_utc_iso(m.get("timestamp"))
         })
     return {"status": "SUCCESS", "messages": history}
 
@@ -1768,7 +1780,7 @@ async def send_match_message(
         "receiverId": receiver_id,
         "text": text,
         "isScreenshot": is_screenshot,
-        "timestamp": msg_doc["timestamp"].isoformat()
+        "timestamp": to_utc_iso(msg_doc["timestamp"])
     }
 
     try:
@@ -1974,7 +1986,7 @@ async def websocket_chat_endpoint(
                 "receiverId": receiver_id,
                 "text": text,
                 "isScreenshot": is_screenshot,
-                "timestamp": msg_doc["timestamp"].isoformat()
+                "timestamp": to_utc_iso(msg_doc["timestamp"])
             }
 
             # Deliver to all active devices of the recipient
