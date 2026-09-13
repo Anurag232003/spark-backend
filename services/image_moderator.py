@@ -1,5 +1,6 @@
 # backend/services/image_moderator.py
 import io
+import colorsys
 from typing import Dict, Any, Tuple
 from PIL import Image
 from fastapi import HTTPException
@@ -62,15 +63,16 @@ def sanitize_and_strip_metadata(image_stream: io.BytesIO, image_format: str) -> 
 
 def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     """
-    Intelligent Nudity & NSFW Content Moderation with Body-Zone Awareness:
-    1. Multi-space skin detection (RGB + YCbCr) calibrated for Indian, Asian, and all human skin tones.
-    2. Body-Zone Torso Analysis: Distinguishes between clothed sleeveless/tank-tops and bare chests/nude torsos.
-    3. Connected Component Flesh Clustering: Identifies massive continuous patches of exposed body.
+    Strict Nudity & NSFW Content Moderation (Zero Tolerance):
+    1. Multi-space biological skin detection (RGB + YCbCr + HSV) to accurately detect bare flesh.
+    2. Strict Torso Analysis: Rejects topless, shirtless, lingerie, exposed chest/abdomen (>50-55%).
+    3. Strict Total Exposure: Rejects excessive bare body exposure (>38%).
+    4. Continuous Cluster: Rejects large exposed flesh patches (>28%).
     
     Safe & Approved:
-      - Normal clothed portraits, t-shirts, dresses, sleeveless tops, tank-tops, shorts, casual photos.
+      - Normal clothed portraits, t-shirts, dresses, shirts, casual photos.
     Rejected:
-      - Fully naked photos, topless/shirtless explicit poses, underwear/lingerie, sexually explicit content.
+      - 18+, naked/topless photos, lingerie, revealing swimwear/bikinis, adult poses.
     """
     thumb = img.convert("RGB").resize((100, 100))
     raw_pixels = list(thumb.getdata())
@@ -82,31 +84,32 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     for idx, pixel in enumerate(raw_pixels):
         r, g, b = pixel[0], pixel[1], pixel[2]
 
-        # 1. RGB Skin rule
-        # Human skin has warm/melanin tones where green is greater than or equal to blue.
-        # Pink, rose, magenta, and purple clothes have high blue (b > g), so g >= (b - 2) prevents mistaking clothing for skin.
+        # 1. RGB Skin Rule
         is_rgb_skin = (
             r > 80 and g > 35 and b > 20 and
-            g >= (b - 2) and
             (max(r, g, b) - min(r, g, b)) > 15 and
-            abs(r - g) > 12 and r > g and r > b
+            r > g and g >= b and (r - g) >= 8
         )
 
-        # 2. YCbCr Skin rule
+        # 2. YCbCr Skin Rule
         y = 0.299 * r + 0.587 * g + 0.114 * b
         cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b
         cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b
-        is_ycbcr_skin = (y > 60 and 77 <= cb <= 135 and 130 <= cr <= 180)
+        is_ycbcr_skin = (y > 60 and 80 <= cb <= 125 and 133 <= cr <= 175)
 
-        if is_rgb_skin and is_ycbcr_skin:
+        # 3. HSV Skin Rule
+        nr, ng, nb = r / 255.0, g / 255.0, b / 255.0
+        h, s, v = colorsys.rgb_to_hsv(nr, ng, nb)
+        h_deg = h * 360.0
+        is_hsv_skin = ((0 <= h_deg <= 32 or h_deg >= 345) and 0.18 <= s <= 0.75 and v >= 0.25)
+
+        if is_rgb_skin and is_ycbcr_skin and is_hsv_skin:
             skin_mask[idx] = 1
             skin_count += 1
 
     total_skin_ratio = skin_count / total_pixels
 
-    # 2. Central Torso Zone Analysis (y: 30% to 70%, x: 25% to 75%)
-    # Clothed tops (tank tops, t-shirts, dresses, swim tops) cover the central chest.
-    # Completely topless or nude photos leave >72% bare torso.
+    # Central Torso Zone Analysis (y: 30% to 70%, x: 25% to 75%)
     torso_pixels = 0
     torso_skin = 0
     for y_coord in range(30, 70):
@@ -116,7 +119,7 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
                 torso_skin += 1
     torso_skin_ratio = torso_skin / torso_pixels
 
-    # 3. BFS Connected Component Analysis for Largest Continuous Flesh Cluster
+    # BFS Connected Component Analysis for Largest Continuous Flesh Cluster
     w, h = 100, 100
     visited = [False] * total_pixels
     max_cluster = 0
@@ -144,22 +147,20 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
 
     cluster_ratio = max_cluster / total_pixels
 
-    # Precise Dating App Safety Evaluation:
-    # 1. Total bare skin > 48% (excessive exposure across body / complete nudity)
-    # 2. Bare Torso > 72% AND total skin > 35% (topless, bare chest/uncovered)
-    # 3. Massive contiguous bare flesh cluster > 42%
-    # Allows standard swimwear, beachwear, bikinis, crop tops, and cosplay,
-    # while strictly blocking topless/shirtless explicit poses and 18+ adult content.
+    # Strict Zero-Tolerance Evaluation:
     is_nsfw = False
     reason = None
 
-    if total_skin_ratio > 0.48:
+    if total_skin_ratio > 0.38:
         is_nsfw = True
         reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
-    elif torso_skin_ratio > 0.72 and total_skin_ratio > 0.35:
+    elif torso_skin_ratio > 0.50:
         is_nsfw = True
         reason = f"Bare torso or uncovered chest detected ({torso_skin_ratio*100:.1f}% bare torso). 18+ or naked photos are not allowed on Spark."
-    elif cluster_ratio > 0.42:
+    elif total_skin_ratio > 0.30 and torso_skin_ratio > 0.45:
+        is_nsfw = True
+        reason = f"High torso and body exposure detected ({torso_skin_ratio*100:.1f}% torso, {total_skin_ratio*100:.1f}% skin). 18+ photos are not allowed."
+    elif cluster_ratio > 0.28:
         is_nsfw = True
         reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
 
