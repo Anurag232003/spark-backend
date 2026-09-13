@@ -224,7 +224,7 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     reason = None
 
     # Layer 1: AI Deep Learning Classifier (Zero Tolerance for explicit 18+ content)
-    if ai_nsfw_score >= 0.50:
+    if ai_nsfw_score >= 0.30:
         is_nsfw = True
         reason = f"Explicit 18+ or adult content detected by AI neural vision ({ai_nsfw_score*100:.1f}% confidence). Nudity is strictly prohibited on Spark."
 
@@ -245,6 +245,7 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     return {
         "is_nsfw": is_nsfw,
         "ai_nsfw_score": round(ai_nsfw_score, 4),
+
         "total_skin_ratio": round(total_skin_ratio, 3),
         "torso_skin_ratio": round(bodice_ratio, 3),
         "chest_ratio": round(chest_ratio, 3),
