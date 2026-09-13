@@ -454,6 +454,18 @@ GENERAL_OPENERS = {
             "Two truths and a lie khelte hain! Tu pehle start kar ya main? 👀🎲",
             "Hey there! A quick question to break the ice: weekend pe best chill spot kaun sa hai? 📍",
             "Hello! Ek quick poll: online shopping cart me 50 items add karke bhool jaana pasand hai ya direct buy? 😂",
+        ],
+        "mysterious": [
+            "Tumhare profile me ek aisi subtle baat notice ki maine jo 99% log miss kar dete hain... 🔮",
+            "Ek prediction karu tumhare baare me? And trust me, meri predictions rarely galat hoti hain... 🌙",
+            "Tumhari profile me ek ankahee story hai jo kaafi magnetic lag rahi hai... ✨",
+            "Hum dono me ek aisi strange similarity hai jo tumne kabhi expect nahi ki hogi... guess karo? 🔮",
+        ],
+        "suspenseful": [
+            "Mujhe tumse ek aisi cheez share karni hai jo shayad mujhe yahan open me nahi bolni chahiye thi... ⏳",
+            "Tumse ek bohot zaroori sawal poochna hai... lekin promise karo 100% sach bologi? 🕵️‍♂️",
+            "Is match ke baad ek plot twist aane wala hai... are you ready for it? ⏳⚡",
+            "Maine tumhari photos dekh ke ek bada decision le liya hai... batau kya? 🤫",
         ]
     },
     "hindi": {
@@ -472,6 +484,16 @@ GENERAL_OPENERS = {
         "casual": [
             "नमस्ते! वीकेंड पर आराम करना पसंद है या दोस्तों के साथ बाहर जाना? ☕",
             "हेलो! एक बात बताइए, चाय की चुस्की या कॉफ़ी की महक? ☕",
+        ],
+        "mysterious": [
+            "आपकी प्रोफ़ाइल में एक ऐसा राज़ महसूस हुआ जो हर किसी की नज़र में नहीं आता... 🔮",
+            "क्या मैं आपके व्यक्तित्व के बारे में एक गहरा सच बताऊँ? हैरान रह जाएँगी आप 🌙",
+            "आपकी आँखों में एक अनकही कहानी है जो काफ़ी दिलचस्प और ख़ास लग रही है ✨",
+        ],
+        "suspenseful": [
+            "मुझे आपसे एक बेहद ज़रूरी सवाल पूछना है... पर वादा कीजिए सच बताएँगी? ⏳",
+            "अगर मैं आपको एक ऐसा सच बताऊँ जो सिर्फ़ मुझे पता है, तो क्या आप संभाल पाएँगी? 🤫",
+            "हमारी इस बातचीत में एक बहुत बड़ा मोड़ आने वाला है... क्या आप तैयार हैं? ⏳⚡",
         ]
     },
     "english": {
@@ -494,6 +516,18 @@ GENERAL_OPENERS = {
             "Two truths and a lie to break the ice—who goes first? 🎲👀",
             "Quick personality test: are you a spontaneous planner or a detailed itinerary person? 🗺️",
             "Sunday vibe check: cozy blanket and Netflix, or outdoor café exploring? ☕",
+        ],
+        "mysterious": [
+            "I noticed a very specific detail in your profile that 99% of people probably scroll past... 🔮",
+            "I have a theory about you based on just your vibe, and I'm rarely wrong. Want to hear it? 🌙",
+            "You have this quiet energy that feels like an unread book with all the best chapters hidden ✨",
+            "There's something wonderfully intriguing about you that caught my attention instantly... 🔮",
+        ],
+        "suspenseful": [
+            "I need to ask you one question, but promise you'll answer with ruthless honesty... ⏳",
+            "I was debating whether to message you this or keep it to myself... but here goes 🤫",
+            "There is a 50/50 chance this conversation either starts an adventure or ruins my reputation 😂⏳",
+            "Our match triggered an interesting sequence of events... care to know the plot twist? ⚡",
         ]
     }
 }
@@ -522,6 +556,16 @@ REVIVE_SUGGESTIONS = {
             "Hey! Ek random thought aaya and wanted your take on it 👀",
             "Chat revive protocol activated 🚨! Batao weekend ka kya plan chal raha hai?",
             "Busy week ya chill vibes? Aaj kal kya chal raha hai tumhari side? ☕",
+        ],
+        "mysterious": [
+            "Silence hamesha sabse bada jawab hoti hai... par tumhari silence ka matlab kya samjhu? 🔮",
+            "Lagta hai tum ek mystery banne ki koshish kar rahi ho... and to be honest, it's actually working 😉🌙",
+            "Tumhare baare me ek thought aaya tha aaj subah, par tab tak nahi bataunga jab tak reply na aaye 🤫",
+        ],
+        "suspenseful": [
+            "Tumhara aakhri message ek aisi suspense thriller pe ruka hai ki cliffhanger jhela nahi jaa raha! ⏳🍿",
+            "Ek emergency situation hai: ya toh tum zinda ho, ya fir mujhe detective hire karna padega! 🕵️‍♂️⚡",
+            "Maine hamare baare me ek bohot bada revelation socha hai... reveal karu ya suspense me chhodu? ⏳",
         ]
     },
     "hindi": {
@@ -540,6 +584,14 @@ REVIVE_SUGGESTIONS = {
         "casual": [
             "नमस्ते! आज कल किस चीज़ में व्यस्त हैं? ☕",
             "हेलो! हफ़्ते का कौन सा दिन सबसे ज़्यादा पसंद है आपको? ✨",
+        ],
+        "mysterious": [
+            "ख़ामोशी भी बहुत कुछ कहती है... पर आपकी ख़ामोशी में कौन सा गहरा राज़ छुपा है? 🔮",
+            "आपके बारे में एक ख़ास ख़्याल आया था, पर बताऊँगा सिर्फ़ आपके जवाब के बाद 🌙",
+        ],
+        "suspenseful": [
+            "हमारी बातचीत ऐसे मोड़ पर रुकी है जैसे किसी थ्रिलर फ़िल्म का इंटरवल! ⏳🎬",
+            "क्या आप किसी सीक्रेट मिशन पर हैं या सिर्फ़ फ़ोन से दूर? सच बताइएगा 🕵️‍♂️⏳",
         ]
     },
     "english": {
@@ -560,6 +612,16 @@ REVIVE_SUGGESTIONS = {
         "casual": [
             "Reviving this chat because I refuse to let a good conversation fade out! How’s your week been? ☕",
             "Quick vibe check—how has the week been treating you so far? 🌟",
+        ],
+        "mysterious": [
+            "Silence is the greatest mystery... but what is yours trying to tell me? 🔮",
+            "You're playing hard to get or just unintentionally enigmatic? Either way, I'm hooked 🌙",
+            "I had a fascinating thought about you today, but you have to unlock it first 🗝️✨",
+        ],
+        "suspenseful": [
+            "Leaving this conversation on a cliffhanger should honestly be a punishable offense! ⏳😂",
+            "I have one final question that will determine whether our story continues or ends here... 🕵️‍♂️⚡",
+            "Are you testing my patience or is there an unexpected plot twist coming? ⏳",
         ]
     }
 }
@@ -598,7 +660,7 @@ async def call_gemini_llm(prompt: str) -> Optional[str]:
                 headers={"Content-Type": "application/json"},
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=6.0) as resp:
+            with urllib.request.urlopen(req, timeout=10.0) as resp:
                 if resp.status == 200:
                     res_data = json.loads(resp.read().decode("utf-8"))
                     text = res_data["candidates"][0]["content"]["parts"][0]["text"]
@@ -646,36 +708,52 @@ def extract_matched_topics(match_profile: Dict[str, Any]) -> List[str]:
     return list(topics)
 
 
+VALID_TONES = ["mysterious", "suspenseful", "flirty", "funny", "respectful", "casual"]
+
+TONE_DESCRIPTIONS = {
+    "mysterious": "Deeply intriguing, enigmatic, and magnetic. Create an alluring curiosity gap that makes the user captivating and irresistible. Make them wonder.",
+    "suspenseful": "High-tension cliffhanger, exciting mystery, thrilling secret or dilemma that compels an immediate reply.",
+    "flirty": "Playful charm, charismatic romantic banter, subtle chemistry and tension.",
+    "funny": "Hilarious wit, relatable comedy, banter that makes them laugh out loud.",
+    "respectful": "Polite, thoughtful, high-value gentleman/lady approach.",
+    "casual": "Chill, relaxed, low-pressure conversational curiosity."
+}
+
 async def generate_icebreakers(
     match_profile: Dict[str, Any],
     user_profile: Optional[Dict[str, Any]] = None,
-    tone: str = "funny",
+    tone: str = "mysterious",
     language: str = "hinglish"
 ) -> Dict[str, Any]:
     """
     Generates 3-4 creative opening lines based on match's profile, interests, and bio.
-    tone: 'flirty' | 'funny' | 'respectful' | 'casual'
+    tone: 'mysterious' | 'suspenseful' | 'flirty' | 'funny' | 'respectful' | 'casual'
     language: 'hinglish' | 'hindi' | 'english'
     """
-    tone = tone.lower() if tone in ["flirty", "funny", "respectful", "casual"] else "funny"
+    tone = tone.lower() if tone in VALID_TONES else "mysterious"
     language = language.lower() if language in ["hinglish", "hindi", "english"] else "hinglish"
 
     match_name = match_profile.get("name", "Match")
     matched_topics = extract_matched_topics(match_profile)
 
     # 1. Try Gemini LLM if key is available
-    if GEMINI_API_KEY:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip() or GEMINI_API_KEY
+    if api_key:
+        tone_instruction = TONE_DESCRIPTIONS.get(tone, "")
         prompt = (
-            f"You are Spark AI Wingman, the user's personal dating assistant.\n"
-            f"Generate 3 creative, authentic, witty opening lines for a dating app conversation.\n"
+            f"You are Spark AI Wingman, the world's most charismatic, attractive, and witty dating assistant.\n"
+            f"Generate 3 highly attractive, interesting, and magnetic opening lines for a dating app conversation.\n"
             f"Match's name: {match_name}\n"
             f"Match's bio: {match_profile.get('bio', '')}\n"
             f"Match's interests: {match_profile.get('interests', [])}\n"
-            f"Tone: {tone}\n"
+            f"Tone: {tone.upper()} ({tone_instruction})\n"
             f"Language: {language} (use natural conversational phrasing, emojis where suitable).\n"
-            f"Rules:\n"
-            f"- Make it sound human and playful, not robotic.\n"
-            f"- Output ONLY a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
+            f"CRITICAL REQUIREMENTS:\n"
+            f"- Lines must be extremely attractive, clever, magnetic, and spark irresistible curiosity.\n"
+            f"- No generic or boring lines! Give them an exciting reason to reply.\n"
+            f"- If tone is MYSTERIOUS: create an intriguing curiosity gap that makes them eager to know more.\n"
+            f"- If tone is SUSPENSEFUL: build high-stakes playful tension or a cliffhanger dilemma that demands an answer.\n"
+            f"- Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
             f"- No extra markdown or intro text."
         )
         llm_resp = await call_gemini_llm(prompt)
@@ -708,7 +786,7 @@ async def generate_icebreakers(
             suggestions.extend(random.sample(topic_dict, min(len(topic_dict), 2)))
 
     # Fill remaining from general openers
-    general_pool = GENERAL_OPENERS.get(language, {}).get(tone, GENERAL_OPENERS["hinglish"]["funny"])
+    general_pool = GENERAL_OPENERS.get(language, {}).get(tone, GENERAL_OPENERS["hinglish"]["mysterious"])
     available_general = [s for s in general_pool if s not in suggestions]
     random.shuffle(available_general)
 
@@ -716,9 +794,9 @@ async def generate_icebreakers(
     if needed > 0:
         suggestions.extend(available_general[:needed])
 
-    # If still under 3, pull from casual or hinglish fallback
+    # If still under 3, pull from fallback
     if len(suggestions) < 3:
-        backup = GENERAL_OPENERS["hinglish"]["funny"]
+        backup = GENERAL_OPENERS["hinglish"]["mysterious"]
         for b in backup:
             if b not in suggestions:
                 suggestions.append(b)
@@ -737,29 +815,32 @@ async def generate_icebreakers(
 async def generate_chat_revivers(
     recent_messages: List[Dict[str, Any]],
     match_profile: Dict[str, Any],
-    tone: str = "funny",
+    tone: str = "mysterious",
     language: str = "hinglish"
 ) -> Dict[str, Any]:
     """
     Generates follow-up lines when chat has stalled or went quiet.
     """
-    tone = tone.lower() if tone in ["flirty", "funny", "respectful", "casual"] else "funny"
+    tone = tone.lower() if tone in VALID_TONES else "mysterious"
     language = language.lower() if language in ["hinglish", "hindi", "english"] else "hinglish"
 
     match_name = match_profile.get("name", "Match")
 
     # 1. Try Gemini LLM if key is available
-    if GEMINI_API_KEY:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip() or GEMINI_API_KEY
+    if api_key:
         last_msgs_text = "\n".join([f"{m.get('sender', 'user')}: {m.get('text', '')}" for m in recent_messages[-3:]])
+        tone_instruction = TONE_DESCRIPTIONS.get(tone, "")
         prompt = (
-            f"You are Spark AI Wingman, the user's personal dating assistant.\n"
-            f"The conversation with {match_name} has stalled or gone quiet. Generate 3 natural, charming, non-needy follow-up messages to revive the chat.\n"
+            f"You are Spark AI Wingman, the ultimate charismatic dating assistant.\n"
+            f"The conversation with {match_name} has stalled or gone quiet. Generate 3 magnetic, highly interesting follow-up messages to revive the chat.\n"
             f"Recent messages context:\n{last_msgs_text or 'No recent replies'}\n"
-            f"Tone: {tone}\n"
+            f"Tone: {tone.upper()} ({tone_instruction})\n"
             f"Language: {language}\n"
-            f"Rules:\n"
-            f"- Do NOT sound desperate or angry. Sound fun, confident, and engaging.\n"
-            f"- Output ONLY a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
+            f"CRITICAL RULES:\n"
+            f"- Do NOT sound needy, desperate, or annoyed. Sound confident, intriguing, and attractive.\n"
+            f"- If tone is MYSTERIOUS or SUSPENSEFUL: create an irresistible hook, cliffhanger, or game they can't ignore.\n"
+            f"- Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
             f"- No extra markdown or intro text."
         )
         llm_resp = await call_gemini_llm(prompt)
@@ -782,7 +863,7 @@ async def generate_chat_revivers(
                 pass
 
     # 2. Local Smart Engine Pool
-    pool = REVIVE_SUGGESTIONS.get(language, {}).get(tone, REVIVE_SUGGESTIONS["hinglish"]["funny"])
+    pool = REVIVE_SUGGESTIONS.get(language, {}).get(tone, REVIVE_SUGGESTIONS["hinglish"]["mysterious"])
     sampled = random.sample(pool, min(len(pool), 4))
     return {
         "suggestions": sampled,
