@@ -16,3 +16,4 @@ twilio>=9.0.0
 firebase-admin>=6.5.0
 requests>=2.31.0
 numpy>=1.26.0
+onnxruntime>=1.18.0

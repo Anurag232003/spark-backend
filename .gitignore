@@ -7,3 +7,4 @@ temp_uploads/
 *.sqlite
 *.sqlite3
 dating_app.db
+models/*.onnx
