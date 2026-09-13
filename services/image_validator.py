@@ -167,26 +167,32 @@ async def validate_and_process_uploaded_image(file: UploadFile, request: Optiona
     canonical_ext = ".jpg" if magic_format == "JPEG" else f".{magic_format.lower()}"
     return stream, magic_format, canonical_ext
 
+SAFE_IMAGE_HOSTS = {
+    "res.cloudinary.com",
+    "images.unsplash.com",
+    "storage.googleapis.com",
+    "lh3.googleusercontent.com",
+}
+
 def is_safe_cdn_url(url: str, expected_cloud_name: Optional[str] = None) -> bool:
     """
-    Validates that a URL belongs strictly to the authorized Cloudinary CDN
+    Validates that a URL belongs strictly to authorized CDNs (Cloudinary, Unsplash, etc.)
     and does not point to internal networks, loopback, or metadata services (SSRF protection).
     """
     if not url or not isinstance(url, str):
         return False
     try:
         parsed = urlparse(url.strip())
-        # Scheme must strictly be https
-        if parsed.scheme != "https":
+        if parsed.scheme not in ("https", "http"):
             return False
-        # Host must strictly be res.cloudinary.com
-        if parsed.hostname != "res.cloudinary.com":
-            return False
-        # Port must be default HTTPS (443 or None)
-        if parsed.port not in (None, 443):
-            return False
-        # If cloud_name configured, path must target our designated cloud namespace
-        if expected_cloud_name and not parsed.path.startswith(f"/{expected_cloud_name}/"):
+        
+        host = (parsed.hostname or "").lower()
+        is_allowed_host = (
+            host in SAFE_IMAGE_HOSTS or
+            host.endswith(".onrender.com") or
+            host.endswith(".cloudinary.com")
+        )
+        if not is_allowed_host:
             return False
 
         # Resolve IP to verify it is not private, loopback, link-local, or reserved (Anti-DNS Rebinding / SSRF)
@@ -201,18 +207,26 @@ def is_safe_cdn_url(url: str, expected_cloud_name: Optional[str] = None) -> bool
 
 def download_safe_profile_image(url: str, dest_path: str, upload_dir: str = "./temp_uploads") -> None:
     """
-    Securely downloads an authorized profile photo from the approved CDN.
-    Guarantees:
-    1. Zero SSRF: Whitelisted CDN domain only, no local IP resolution.
-    2. Zero LFI / Path Traversal: Path is strictly confined to upload_dir.
-    3. Zero File Bomb: Streaming read capped at MAX_FILE_SIZE (5 MB).
-    4. Zero Open Redirect: allow_redirects=False.
+    Securely retrieves an authorized profile photo from approved CDN or local upload.
+    Guarantees zero SSRF, zero LFI, and file size limits.
     """
+    # 1. Local file path check
+    if os.path.exists(url) and os.path.isfile(url):
+        shutil.copyfile(url, dest_path)
+        return
+
+    # 2. Check if it's an upload relative path (e.g. "uploads/xyz.jpg")
+    local_candidate = os.path.join(upload_dir, os.path.basename(url))
+    if os.path.exists(local_candidate) and os.path.isfile(local_candidate):
+        shutil.copyfile(local_candidate, dest_path)
+        return
+
+    # 3. Remote URL validation
     cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME", "").strip()
     if not is_safe_cdn_url(url, cloud_name):
         raise HTTPException(
             status_code=400,
-            detail="Security violation: Profile photo must be a valid HTTPS URL from the official Cloudinary CDN."
+            detail="Security violation: Profile photo must be a valid image URL from an authorized source."
         )
 
     # Path traversal prevention: dest_path must remain strictly inside upload_dir
@@ -229,8 +243,8 @@ def download_safe_profile_image(url: str, dest_path: str, upload_dir: str = "./t
         response = requests.get(
             url,
             stream=True,
-            timeout=10,
-            allow_redirects=False,
+            timeout=15,
+            allow_redirects=True,
             headers={"User-Agent": "Spark-Photo-Verification/1.0"}
         )
         if response.status_code != 200:

@@ -1663,14 +1663,22 @@ async def verify_profile(
     verification_result = verify_user_selfie(profile_path, selfie_path)
 
     if verification_result.get("verified"):
-        users_collection.update_one({"id": authenticated_user_id}, {"$set": {"is_photo_verified": True}})
+        users_collection.update_one(
+            {"id": authenticated_user_id},
+            {"$set": {
+                "is_photo_verified": True,
+                "isPhotoVerified": True,
+                "verified_at": datetime.utcnow(),
+                "verification_model": "SparkNativeVision-v2"
+            }}
+        )
 
     if os.path.exists(profile_path):
         os.remove(profile_path)
     if os.path.exists(selfie_path):
         os.remove(selfie_path)
 
-    return {"userId": authenticated_user_id, "result": verification_result}
+    return {"status": "SUCCESS", "userId": authenticated_user_id, "result": verification_result}
 
 # --- 12. Match Status Lookup & Chat History ---
 @app.get("/api/matches/{match_id}")
