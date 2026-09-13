@@ -302,3 +302,12 @@ class RefreshTokenDocument(BaseModel):
     model_config = {
         "populate_by_name": True,
     }
+
+
+class UpdateDailyVibeRequest(BaseModel):
+    """
+    Request model to update user's daily vibe (mood-based matching).
+    """
+    vibes: List[str] = Field(..., min_length=1, max_length=2, description="List of 1 or 2 selected daily vibe IDs")
+    customNote: Optional[str] = Field(default=None, max_length=60, description="Optional brief daily mood thought")
+

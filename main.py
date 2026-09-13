@@ -72,7 +72,12 @@ from database import (
 )
 from ml_services.verification import verify_user_selfie
 from services.notifier import send_sms_otp
-from services.feed_ranking import rank_feed_candidates, compute_candidate_score
+from services.feed_ranking import (
+    rank_feed_candidates,
+    compute_candidate_score,
+    DAILY_VIBE_DEFINITIONS,
+    is_vibe_active,
+)
 from services.ai_wingman import generate_icebreakers, generate_chat_revivers, generate_profile_coach
 from services.date_planner import generate_date_ideas, build_google_calendar_url
 from services.circles_service import (
@@ -3648,4 +3653,88 @@ def get_active_date_checkin_endpoint(current_user: dict = Depends(get_current_us
     user_id = current_user["id"]
     checkin = get_active_date_checkin(user_id)
     return {"status": "SUCCESS", "activeCheckin": checkin}
+
+# --- 19. Spark Vibe — Mood-Based Matching Endpoints ---
+class UpdateDailyVibeRequest(BaseModel):
+    vibes: List[str] = Field(..., min_length=1, max_length=2)
+    customNote: Optional[str] = Field(default=None, max_length=60)
+
+@app.get("/api/vibes/options")
+def get_vibe_options_endpoint():
+    """Returns available daily vibe choices with icons, titles, and tags."""
+    options = list(DAILY_VIBE_DEFINITIONS.values())
+    return {"status": "SUCCESS", "vibes": options}
+
+@app.get("/api/users/me/daily-vibe")
+def get_my_daily_vibe_endpoint(current_user: dict = Depends(get_current_user)):
+    """Fetches user's current daily vibe and remaining validity."""
+    user_id = current_user["id"]
+    user = users_collection.find_one({"id": user_id}) or current_user
+    active = is_vibe_active(user)
+    
+    vibes = user.get("daily_vibes", [])
+    if isinstance(vibes, str):
+        vibes = [vibes]
+    
+    primary = vibes[0] if vibes else user.get("daily_vibe")
+    primary_def = DAILY_VIBE_DEFINITIONS.get(primary) if primary else None
+    
+    return {
+        "status": "SUCCESS",
+        "isActive": active,
+        "dailyVibes": vibes if active else [],
+        "dailyVibe": primary if active else None,
+        "dailyVibeLabel": primary_def["label"] if (active and primary_def) else user.get("daily_vibe_label") if active else None,
+        "dailyVibeEmoji": primary_def["emoji"] if (active and primary_def) else "💖",
+        "vibeUpdatedAt": user.get("vibe_updated_at"),
+        "vibeNote": user.get("vibe_note") if active else None,
+    }
+
+@app.post("/api/users/me/daily-vibe")
+def update_my_daily_vibe_endpoint(
+    payload: UpdateDailyVibeRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Sets or updates the user's daily mood vibe (expires after 24h)."""
+    user_id = current_user["id"]
+    
+    valid_ids = set(DAILY_VIBE_DEFINITIONS.keys())
+    clean_vibes = [v.strip().lower() for v in payload.vibes if v.strip().lower() in valid_ids]
+    if not clean_vibes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid vibe selection. Choose from: {list(valid_ids)}"
+        )
+    
+    clean_vibes = clean_vibes[:2]
+    labels = [DAILY_VIBE_DEFINITIONS[v]["label"] for v in clean_vibes]
+    primary_label = " + ".join(labels)
+    primary_emoji = DAILY_VIBE_DEFINITIONS[clean_vibes[0]]["emoji"]
+    
+    now = datetime.utcnow()
+    expires_at = now + timedelta(hours=24)
+    
+    update_data = {
+        "daily_vibes": clean_vibes,
+        "daily_vibe": clean_vibes[0],
+        "daily_vibe_label": primary_label,
+        "daily_vibe_emoji": primary_emoji,
+        "vibe_note": payload.customNote.strip() if payload.customNote else None,
+        "vibe_updated_at": now,
+        "vibe_expires_at": expires_at,
+    }
+    
+    users_collection.update_one({"id": user_id}, {"$set": update_data})
+    
+    return {
+        "status": "SUCCESS",
+        "message": "Today's vibe set successfully! ✨",
+        "dailyVibes": clean_vibes,
+        "dailyVibe": clean_vibes[0],
+        "dailyVibeLabel": primary_label,
+        "dailyVibeEmoji": primary_emoji,
+        "vibeUpdatedAt": now.isoformat(),
+        "vibeExpiresAt": expires_at.isoformat(),
+    }
+
 

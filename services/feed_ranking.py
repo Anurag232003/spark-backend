@@ -14,12 +14,64 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Set, Tuple
 
 # Default Scoring Weights (sum = 1.0)
-WEIGHT_LOCATION = 0.25
-WEIGHT_PREFERENCES = 0.20
+WEIGHT_LOCATION = 0.20
+WEIGHT_PREFERENCES = 0.15
 WEIGHT_ACTIVITY = 0.15
 WEIGHT_COMPATIBILITY = 0.15
 WEIGHT_INTERACTION = 0.15
 WEIGHT_VERIFICATION = 0.10
+WEIGHT_VIBE = 0.10
+
+DAILY_VIBE_DEFINITIONS = {
+    "chill_coffee": {
+        "id": "chill_coffee",
+        "title": "Chill & coffee",
+        "emoji": "☕",
+        "label": "Chill & coffee ☕",
+        "tagline": "Cozy cafe dates, latte art & relaxing afternoon strolls",
+        "compatible_with": ["talkative", "movie_night", "friendship"]
+    },
+    "adventure": {
+        "id": "adventure",
+        "title": "Adventure mode",
+        "emoji": "🌄",
+        "label": "Adventure mode 🌄",
+        "tagline": "Scenic hikes, road trips, spontaneous drives & thrills",
+        "compatible_with": ["movie_night", "serious_relationship"]
+    },
+    "talkative": {
+        "id": "talkative",
+        "title": "Talkative today",
+        "emoji": "💬",
+        "label": "Talkative today 💬",
+        "tagline": "Endless late-night banter, deep thoughts & lively stories",
+        "compatible_with": ["chill_coffee", "friendship", "serious_relationship"]
+    },
+    "friendship": {
+        "id": "friendship",
+        "title": "Just friendship",
+        "emoji": "🤝",
+        "label": "Just friendship 🤝",
+        "tagline": "Good company, mutual hobbies & zero dating pressure",
+        "compatible_with": ["chill_coffee", "talkative", "movie_night"]
+    },
+    "serious_relationship": {
+        "id": "serious_relationship",
+        "title": "Serious relationship",
+        "emoji": "❤️",
+        "label": "Serious relationship ❤️",
+        "tagline": "Intentional dating, emotional depth & building a future",
+        "compatible_with": ["talkative", "adventure"]
+    },
+    "movie_night": {
+        "id": "movie_night",
+        "title": "Movie night",
+        "emoji": "🎬",
+        "label": "Movie night 🎬",
+        "tagline": "Popcorn, multiplex screenings & binge-watching indie films",
+        "compatible_with": ["chill_coffee", "friendship", "adventure"]
+    }
+}
 
 def compute_location_score(distance_km: Optional[float]) -> float:
     """
@@ -186,6 +238,88 @@ def compute_interaction_score(candidate_id: str, incoming_likes_set: Set[str]) -
         return 1.0
     return 0.30
 
+def is_vibe_active(user_obj: dict) -> bool:
+    """Checks if the user's daily vibe was set within the last 24 hours."""
+    ts = user_obj.get("vibe_updated_at")
+    if not ts:
+        return False
+    if isinstance(ts, str):
+        try:
+            ts = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        except Exception:
+            return False
+    now = datetime.now(timezone.utc) if ts.tzinfo else datetime.utcnow()
+    diff = now - ts
+    return diff.total_seconds() <= 86400.0  # 24 hours
+
+def compute_vibe_score(candidate: dict, current_user: dict) -> Tuple[float, Optional[dict]]:
+    """
+    Computes real-time mood & vibe alignment.
+    Returns (vibe_score_0_to_1, vibe_match_info_dict).
+    """
+    user_active = is_vibe_active(current_user)
+    cand_active = is_vibe_active(candidate)
+
+    user_vibes = current_user.get("daily_vibes") or []
+    cand_vibes = candidate.get("daily_vibes") or []
+
+    if isinstance(user_vibes, str):
+        user_vibes = [user_vibes]
+    if isinstance(cand_vibes, str):
+        cand_vibes = [cand_vibes]
+
+    cand_primary_vibe = cand_vibes[0] if cand_vibes else candidate.get("daily_vibe")
+    cand_vibe_def = DAILY_VIBE_DEFINITIONS.get(cand_primary_vibe) if cand_primary_vibe else None
+
+    vibe_match_info = {
+        "isVibeMatch": False,
+        "matchedVibe": None,
+        "matchedVibes": [],
+        "candidateVibe": cand_primary_vibe,
+        "candidateVibeLabel": cand_vibe_def["label"] if cand_vibe_def else candidate.get("daily_vibe_label"),
+        "candidateVibeEmoji": cand_vibe_def["emoji"] if cand_vibe_def else "💖",
+        "matchPercentage": None
+    }
+
+    if user_active and cand_active and user_vibes and cand_vibes:
+        shared = set(user_vibes) & set(cand_vibes)
+        if shared:
+            matched_id = list(shared)[0]
+            matched_def = DAILY_VIBE_DEFINITIONS.get(matched_id, {})
+            vibe_match_info["isVibeMatch"] = True
+            vibe_match_info["matchedVibe"] = matched_def.get("label") or matched_id
+            vibe_match_info["matchedVibes"] = list(shared)
+            vibe_match_info["matchPercentage"] = 92 if len(shared) > 1 else 88
+            return 1.0, vibe_match_info
+
+        is_compatible = False
+        compatible_pair_name = None
+        for u_v in user_vibes:
+            u_compat = DAILY_VIBE_DEFINITIONS.get(u_v, {}).get("compatible_with", [])
+            for c_v in cand_vibes:
+                if c_v in u_compat:
+                    is_compatible = True
+                    u_def = DAILY_VIBE_DEFINITIONS.get(u_v, {})
+                    c_def = DAILY_VIBE_DEFINITIONS.get(c_v, {})
+                    compatible_pair_name = f"{u_def.get('title', '')} + {c_def.get('title', '')}"
+                    break
+            if is_compatible:
+                break
+
+        if is_compatible:
+            vibe_match_info["isVibeMatch"] = True
+            vibe_match_info["matchedVibe"] = compatible_pair_name or "Compatible Vibes"
+            vibe_match_info["matchedVibes"] = list(set(user_vibes + cand_vibes))
+            vibe_match_info["matchPercentage"] = 82
+            return 0.80, vibe_match_info
+
+        return 0.40, vibe_match_info
+
+    if cand_active and cand_vibes:
+        return 0.50, vibe_match_info
+
+    return 0.25, vibe_match_info
+
 def compute_verification_score(candidate: dict) -> float:
     """
     Rewards authentic, verified profiles (photo selfie verification & phone verification).
@@ -214,6 +348,7 @@ def compute_candidate_score(
     compat_score = compute_compatibility_score(candidate, current_user)
     interact_score = compute_interaction_score(candidate["id"], incoming_likes_set)
     verify_score = compute_verification_score(candidate)
+    vibe_score, vibe_info = compute_vibe_score(candidate, current_user)
 
     composite = (
         (WEIGHT_LOCATION * loc_score) +
@@ -221,7 +356,8 @@ def compute_candidate_score(
         (WEIGHT_ACTIVITY * act_score) +
         (WEIGHT_COMPATIBILITY * compat_score) +
         (WEIGHT_INTERACTION * interact_score) +
-        (WEIGHT_VERIFICATION * verify_score)
+        (WEIGHT_VERIFICATION * verify_score) +
+        (WEIGHT_VIBE * vibe_score)
     )
     
     composite = round(max(0.0, min(1.0, composite)), 4)
@@ -230,6 +366,7 @@ def compute_candidate_score(
     return {
         "composite_score": composite,
         "match_score": match_score,
+        "vibe_match": vibe_info,
         "breakdown": {
             "location": round(loc_score, 3),
             "preferences": round(pref_score, 3),
@@ -237,6 +374,7 @@ def compute_candidate_score(
             "compatibility": round(compat_score, 3),
             "interaction": round(interact_score, 3),
             "verification": round(verify_score, 3),
+            "vibe": round(vibe_score, 3),
         }
     }
 
@@ -276,6 +414,9 @@ def rank_feed_candidates(
             "photos": candidate.get("photos", []),
             "prompts": candidate.get("prompts", []),
             "isPhotoVerified": candidate.get("is_photo_verified", False),
+            "dailyVibes": candidate.get("daily_vibes", []),
+            "dailyVibeLabel": candidate.get("daily_vibe_label"),
+            "vibeMatch": score_info["vibe_match"],
             "matchScore": score_info["match_score"],
             "_rankingSignals": score_info["breakdown"],
             "_compositeScore": score_info["composite_score"],
