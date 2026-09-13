@@ -73,6 +73,7 @@ from database import (
 from ml_services.verification import verify_user_selfie
 from services.notifier import send_sms_otp
 from services.feed_ranking import rank_feed_candidates, compute_candidate_score
+from services.ai_wingman import generate_icebreakers, generate_chat_revivers, generate_profile_coach
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -2661,3 +2662,137 @@ def admin_delete_user(
             "messages": "all in above matches"
         }
     }
+
+# ==============================================================================
+# AI WINGMAN — PERSONAL DATING ASSISTANT ENDPOINTS
+# ==============================================================================
+
+class WingmanIcebreakersRequest(BaseModel):
+    matchId: str
+    tone: Optional[str] = "funny"
+    language: Optional[str] = "hinglish"
+
+class WingmanReviveRequest(BaseModel):
+    matchId: str
+    tone: Optional[str] = "funny"
+    language: Optional[str] = "hinglish"
+
+class WingmanCoachRequest(BaseModel):
+    language: Optional[str] = "hinglish"
+
+@app.post("/api/wingman/icebreakers")
+@limiter.limit("30/minute")
+async def get_wingman_icebreakers(
+    request: Request,
+    payload: WingmanIcebreakersRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Generates tailored icebreaker suggestions based on match's profile & interests.
+    AI gives suggestions only — user reviews and sends manually.
+    """
+    user_id = current_user["id"]
+    try:
+        obj_id = ObjectId(payload.matchId)
+        match_query = {"_id": obj_id}
+    except Exception:
+        match_query = {"_id": payload.matchId}
+
+    match = matches_collection.find_one({
+        **match_query,
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found.")
+
+    other_user_id = match["user2_id"] if match["user1_id"] == user_id else match["user1_id"]
+    other_user = users_collection.find_one({"id": other_user_id})
+    if not other_user:
+        raise HTTPException(status_code=404, detail="Match partner profile not found.")
+
+    result = await generate_icebreakers(
+        match_profile=other_user,
+        user_profile=current_user,
+        tone=payload.tone or "funny",
+        language=payload.language or "hinglish"
+    )
+
+    return {
+        "status": "SUCCESS",
+        "matchName": other_user.get("name", "Match"),
+        "matchPhoto": other_user.get("photos", [""])[0] if other_user.get("photos") else "",
+        **result
+    }
+
+@app.post("/api/wingman/revive")
+@limiter.limit("30/minute")
+async def get_wingman_revive(
+    request: Request,
+    payload: WingmanReviveRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Generates natural follow-up lines to restart a stalled/quiet conversation.
+    """
+    user_id = current_user["id"]
+    try:
+        obj_id = ObjectId(payload.matchId)
+        match_query = {"_id": obj_id}
+    except Exception:
+        match_query = {"_id": payload.matchId}
+
+    match = matches_collection.find_one({
+        **match_query,
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found.")
+
+    other_user_id = match["user2_id"] if match["user1_id"] == user_id else match["user1_id"]
+    other_user = users_collection.find_one({"id": other_user_id})
+    if not other_user:
+        raise HTTPException(status_code=404, detail="Match partner profile not found.")
+
+    # Fetch recent messages
+    recent_docs = list(
+        messages_collection.find({"match_id": str(match["_id"])})
+        .sort("timestamp", -1)
+        .limit(6)
+    )
+    recent_docs.reverse()
+    formatted_recent = [
+        {"sender": "me" if m.get("sender_id") == user_id else "them", "text": m.get("text", "")}
+        for m in recent_docs
+    ]
+
+    result = await generate_chat_revivers(
+        recent_messages=formatted_recent,
+        match_profile=other_user,
+        tone=payload.tone or "funny",
+        language=payload.language or "hinglish"
+    )
+
+    return {
+        "status": "SUCCESS",
+        "matchName": other_user.get("name", "Match"),
+        **result
+    }
+
+@app.post("/api/wingman/profile-coach")
+@limiter.limit("15/minute")
+def get_wingman_profile_coach(
+    request: Request,
+    payload: WingmanCoachRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Analyzes current user's profile and returns a Strength Score (0-100) + actionable tips.
+    """
+    result = generate_profile_coach(
+        user_profile=current_user,
+        language=payload.language or "hinglish"
+    )
+    return {
+        "status": "SUCCESS",
+        **result
+    }
