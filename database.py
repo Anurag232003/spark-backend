@@ -33,6 +33,8 @@ circle_members_collection = db["circle_members"]
 circle_posts_collection = db["circle_posts"]
 circle_post_likes_collection = db["circle_post_likes"]
 circle_comments_collection = db["circle_comments"]
+duos_collection = db["duos"]
+duo_interactions_collection = db["duo_interactions"]
 
 def init_db_indexes():
     """
@@ -122,6 +124,14 @@ def init_db_indexes():
         circle_posts_collection.create_index([("author_id", 1)])
         circle_post_likes_collection.create_index([("post_id", 1), ("user_id", 1)], unique=True)
         circle_comments_collection.create_index([("post_id", 1), ("created_at", 1)])
+
+        # 11. Double Date Duos collections
+        duos_collection.create_index([("invite_code", 1)], unique=True, sparse=True)
+        duos_collection.create_index([("user1_id", 1)])
+        duos_collection.create_index([("user2_id", 1)])
+        duos_collection.create_index([("status", 1)])
+        duo_interactions_collection.create_index([("from_duo_id", 1), ("target_duo_id", 1)], unique=True)
+        duo_interactions_collection.create_index([("target_duo_id", 1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 

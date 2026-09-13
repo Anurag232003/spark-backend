@@ -88,6 +88,14 @@ from services.circles_service import (
     create_post_comment,
     connect_from_circle,
 )
+from services.double_date_service import (
+    create_duo_invite,
+    join_duo_by_code,
+    get_user_duo,
+    disband_duo,
+    get_double_date_feed,
+    swipe_duo,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -1382,18 +1390,50 @@ def get_my_matches(current_user: dict = Depends(get_current_user)):
     blocked_ids = get_blocked_user_ids(user_id)
 
     matches_cursor = matches_collection.find({
-        "$or": [{"user1_id": user_id}, {"user2_id": user_id}],
+        "$or": [
+            {"user1_id": user_id},
+            {"user2_id": user_id},
+            {"participants": user_id}
+        ],
         "status": "ACTIVE"
     })
 
     now = datetime.utcnow()
     match_list = []
     for m in matches_cursor:
+        match_str_id = str(m["_id"])
+
+        if m.get("is_double_date"):
+            parts = m.get("participants", [])
+            other_parts = [p for p in parts if p != user_id]
+            lead_other = users_collection.find_one({"id": other_parts[0]}) if other_parts else None
+            photo = (lead_other.get("photos", [""]) or [""])[0] if lead_other else ""
+            
+            squad_name = m.get("duo2_name", "Double Date") if user_id == m.get("user1_id") or user_id in parts[:2] else m.get("duo1_name", "Double Date")
+            
+            last_msg_doc = messages_collection.find_one(
+                {"match_id": match_str_id},
+                sort=[("timestamp", -1)]
+            )
+            last_msg_text = last_msg_doc["text"] if last_msg_doc else f"🎉 2v2 Match with {squad_name}!"
+
+            match_list.append({
+                "matchId": match_str_id,
+                "userId": other_parts[0] if other_parts else "group",
+                "name": f"👯 {squad_name}",
+                "photo": photo,
+                "isDoubleDate": True,
+                "squadName": squad_name,
+                "participants": parts,
+                "firstMoveMade": True,
+                "lastMessage": last_msg_text
+            })
+            continue
+
         other_id = m["user2_id"] if m["user1_id"] == user_id else m["user1_id"]
         if other_id in blocked_ids:
             continue
 
-        match_str_id = str(m["_id"])
         deadline = m.get("first_move_deadline")
         has_first_move = m.get("first_move_made", False)
 
@@ -1681,13 +1721,13 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
         match_obj_id = ObjectId(match_id)
         match_query = {
             "_id": match_obj_id,
-            "$or": [{"user1_id": user_id}, {"user2_id": user_id}]
+            "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]
         }
     except Exception:
         match_query = {
             "$or": [
-                {"_id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]},
-                {"id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]}
+                {"_id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]},
+                {"id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]}
             ]
         }
 
@@ -1721,20 +1761,36 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
                 {"$set": {"first_move_made": True}}
             )
 
-    msgs_cursor = messages_collection.find({"match_id": match_id}).sort("timestamp", 1)
+    msgs_cursor = list(messages_collection.find({"match_id": match_id}).sort("timestamp", 1))
+    sender_ids = list({m.get("sender_id") for m in msgs_cursor if m.get("sender_id")})
+    user_map = {}
+    if sender_ids:
+        for u in users_collection.find({"id": {"$in": sender_ids}}):
+            user_map[u.get("id")] = u
+
     history = []
     for m in msgs_cursor:
+        s_user = user_map.get(m.get("sender_id"), {})
+        photos = s_user.get("photos", [])
         history.append({
             "id": str(m["_id"]),
             "matchId": m["match_id"],
             "senderId": m["sender_id"],
+            "senderName": s_user.get("name", "Spark Member"),
+            "senderPhoto": photos[0] if photos else "",
             "text": m["text"],
             "isScreenshot": m.get("is_screenshot", False),
             "isDateProposal": m.get("is_date_proposal", False),
             "dateProposal": m.get("date_proposal"),
             "timestamp": to_utc_iso(m.get("timestamp"))
         })
-    return {"status": "SUCCESS", "messages": history}
+    return {
+        "status": "SUCCESS",
+        "messages": history,
+        "isDoubleDate": match.get("is_double_date", False),
+        "squadName": match.get("duo2_name" if match.get("user1_id") == user_id else "duo1_name"),
+        "participants": match.get("participants", []),
+    }
 
 class SendMessageRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=1000)
@@ -1761,13 +1817,13 @@ async def send_match_message(
         match_obj_id = ObjectId(match_id)
         match_query = {
             "_id": match_obj_id,
-            "$or": [{"user1_id": user_id}, {"user2_id": user_id}]
+            "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]
         }
     except Exception:
         match_query = {
             "$or": [
-                {"_id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]},
-                {"id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}]}
+                {"_id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]},
+                {"id": match_id, "$or": [{"user1_id": user_id}, {"user2_id": user_id}, {"participants": user_id}]}
             ]
         }
 
@@ -1778,11 +1834,12 @@ async def send_match_message(
     if match.get("status") != "ACTIVE":
         raise HTTPException(status_code=400, detail="Match is not active.")
 
+    is_double_date = bool(match.get("is_double_date"))
     u1 = match.get("user1_id")
     u2 = match.get("user2_id")
-    receiver_id = u2 if user_id == u1 else u1
+    receiver_id = "group" if is_double_date else (u2 if user_id == u1 else u1)
 
-    if receiver_id in get_blocked_user_ids(user_id):
+    if not is_double_date and receiver_id in get_blocked_user_ids(user_id):
         raise HTTPException(status_code=400, detail="Communication between these users is blocked.")
 
     msg_doc = {
@@ -1798,19 +1855,30 @@ async def send_match_message(
     if not match.get("first_move_made"):
         matches_collection.update_one({"_id": match["_id"]}, {"$set": {"first_move_made": True, "first_move_at": datetime.utcnow()}})
 
+    u_sender = users_collection.find_one({"id": user_id})
+    s_name = u_sender.get("name", "User") if u_sender else "User"
+    s_photo = (u_sender.get("photos", [""]) or [""])[0] if u_sender else ""
+
     resp_payload = {
         "id": str(inserted.inserted_id),
         "matchId": match_id,
         "senderId": user_id,
+        "senderName": s_name,
+        "senderPhoto": s_photo,
         "receiverId": receiver_id,
         "text": text,
         "isScreenshot": is_screenshot,
+        "isDoubleDate": is_double_date,
         "timestamp": to_utc_iso(msg_doc["timestamp"])
     }
 
     try:
-        await manager.send_personal_message(resp_payload, user_id)
-        await manager.send_personal_message(resp_payload, receiver_id)
+        if is_double_date and match.get("participants"):
+            for p_id in match["participants"]:
+                await manager.send_personal_message(resp_payload, p_id)
+        else:
+            await manager.send_personal_message(resp_payload, user_id)
+            await manager.send_personal_message(resp_payload, receiver_id)
     except Exception:
         pass
 
@@ -1920,7 +1988,8 @@ async def websocket_chat_endpoint(
             # 3. Is authenticated user part of this match?
             u1 = match.get("user1_id")
             u2 = match.get("user2_id")
-            if user_id not in (u1, u2):
+            participants = match.get("participants") or [u1, u2]
+            if user_id not in participants:
                 await websocket.send_json({
                     "status": "ERROR",
                     "error": "UNAUTHORIZED_SENDER",
@@ -1928,36 +1997,37 @@ async def websocket_chat_endpoint(
                 })
                 continue
 
-            # 4. DERIVE RECEIVER SERVER-SIDE FROM MATCH (Never trust client-supplied receiverId!)
-            receiver_id = u2 if user_id == u1 else u1
+            is_double_date = bool(match.get("is_double_date"))
 
-            # If client supplied a spoofed receiverId, reject tampering
-            client_receiver_id = data.get("receiverId")
-            if client_receiver_id and client_receiver_id != receiver_id:
-                await websocket.send_json({
-                    "status": "ERROR",
-                    "error": "RECEIVER_MISMATCH",
-                    "message": "Client receiverId does not match the paired match participant."
-                })
-                continue
+            # 4. DERIVE RECEIVER SERVER-SIDE FROM MATCH
+            if is_double_date:
+                receiver_id = "group"
+            else:
+                receiver_id = u2 if user_id == u1 else u1
+                client_receiver_id = data.get("receiverId")
+                if client_receiver_id and client_receiver_id != receiver_id:
+                    await websocket.send_json({
+                        "status": "ERROR",
+                        "error": "RECEIVER_MISMATCH",
+                        "message": "Client receiverId does not match the paired match participant."
+                    })
+                    continue
 
-            # 5. Check if communication is blocked between participants
-            if receiver_id in get_blocked_user_ids(user_id):
-                await websocket.send_json({
-                    "status": "ERROR",
-                    "error": "COMMUNICATION_BLOCKED",
-                    "message": "Communication between these users is blocked."
-                })
-                continue
+                # 5. Check if communication is blocked between participants
+                if receiver_id in get_blocked_user_ids(user_id):
+                    await websocket.send_json({
+                        "status": "ERROR",
+                        "error": "COMMUNICATION_BLOCKED",
+                        "message": "Communication between these users is blocked."
+                    })
+                    continue
 
-            # 6. Enforce first_move_deadline and first-mover identity
-            #    Only the designated first_mover_id may send the opening message.
-            #    After the first move is made, both users can message freely.
+            # 6. Enforce first_move_deadline for solo matches
             deadline = match.get("first_move_deadline")
             has_first_move = match.get("first_move_made", False)
             first_mover_id = match.get("first_mover_id")
 
-            if not has_first_move:
+            if not is_double_date and not has_first_move:
                 # Recount messages as source of truth in case the flag is stale
                 msg_count = messages_collection.count_documents({"match_id": match_id})
                 if msg_count > 0:
@@ -1977,8 +2047,6 @@ async def websocket_chat_endpoint(
                         })
                         continue
 
-                    # Enforce designated first mover: only first_mover_id may open the chat.
-                    # Legacy matches without first_mover_id set have no restriction (either can go first).
                     if first_mover_id and user_id != first_mover_id:
                         await websocket.send_json({
                             "status": "ERROR",
@@ -2004,18 +2072,30 @@ async def websocket_chat_endpoint(
                     {"$set": {"first_move_made": True, "first_move_at": datetime.utcnow()}}
                 )
 
+            u_sender = users_collection.find_one({"id": user_id})
+            s_name = u_sender.get("name", "User") if u_sender else "User"
+            s_photo = (u_sender.get("photos", [""]) or [""])[0] if u_sender else ""
+
             broadcast_payload = {
                 "id": str(inserted.inserted_id),
                 "matchId": match_id,
                 "senderId": user_id,
+                "senderName": s_name,
+                "senderPhoto": s_photo,
                 "receiverId": receiver_id,
                 "text": text,
                 "isScreenshot": is_screenshot,
+                "isDoubleDate": is_double_date,
                 "timestamp": to_utc_iso(msg_doc["timestamp"])
             }
 
-            # Deliver to all active devices of the recipient
-            await manager.send_personal_message(broadcast_payload, receiver_id)
+            # Deliver to participants
+            if is_double_date and match.get("participants"):
+                for p_id in match["participants"]:
+                    if p_id != user_id:
+                        await manager.send_personal_message(broadcast_payload, p_id)
+            else:
+                await manager.send_personal_message(broadcast_payload, receiver_id)
 
             # Sync message to all other connected devices of the sender
             await manager.broadcast_to_user_devices(broadcast_payload, user_id, exclude_socket=websocket)
@@ -3218,6 +3298,104 @@ async def connect_from_circle_endpoint(
             circle_id=payload.circleId,
             post_id=payload.postId,
             opening_message=payload.message
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ==============================================================================
+# DOUBLE DATE MODE — 2 VS 2 DATING ENGINE ENDPOINTS
+# ==============================================================================
+
+class CreateDuoRequest(BaseModel):
+    squadName: str
+    vibe: str
+    preference: Optional[str] = "any"
+
+class JoinDuoRequest(BaseModel):
+    inviteCode: str
+
+class SwipeDuoRequest(BaseModel):
+    targetDuoId: str
+    action: str  # "LIKE" | "PASS"
+
+@app.post("/api/double-date/duo/create")
+@limiter.limit("20/minute")
+async def create_duo_endpoint(
+    request: Request,
+    payload: CreateDuoRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        duo = create_duo_invite(
+            user_id=user_id,
+            squad_name=payload.squadName,
+            vibe=payload.vibe,
+            preference=payload.preference or "any"
+        )
+        return {"status": "SUCCESS", "duo": duo}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/double-date/duo/join")
+@limiter.limit("20/minute")
+async def join_duo_endpoint(
+    request: Request,
+    payload: JoinDuoRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        duo = join_duo_by_code(code=payload.inviteCode, joining_user_id=user_id)
+        return {"status": "SUCCESS", "duo": duo}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/double-date/duo/my")
+@limiter.limit("60/minute")
+async def get_my_duo_endpoint(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    duo = get_user_duo(user_id)
+    return {"status": "SUCCESS", "hasDuo": bool(duo and duo["status"] == "ACTIVE"), "duo": duo}
+
+@app.post("/api/double-date/duo/disband")
+@limiter.limit("20/minute")
+async def disband_duo_endpoint(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    res = disband_duo(user_id)
+    return res
+
+@app.get("/api/double-date/feed")
+@limiter.limit("60/minute")
+async def get_double_date_feed_endpoint(
+    request: Request,
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    feed_res = get_double_date_feed(user_id=user_id, limit=limit)
+    return {"status": "SUCCESS", **feed_res}
+
+@app.post("/api/double-date/swipe")
+@limiter.limit("60/minute")
+async def swipe_duo_endpoint(
+    request: Request,
+    payload: SwipeDuoRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        res = swipe_duo(
+            user_id=user_id,
+            target_duo_id=payload.targetDuoId,
+            action=payload.action
         )
         return res
     except ValueError as e:
