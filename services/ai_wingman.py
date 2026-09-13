@@ -25,603 +25,724 @@ INTEREST_TOPIC_MAP = {
     "coffee": {
         "hinglish": {
             "flirty": [
-                "Coffee pasand hai ya direct mere sath cold brew date pe chalogi? ☕😉",
-                "Cup of coffee aur tumhari baatein... sounds like a perfect evening ✨☕",
-                "Warning: Meri coffee se zyada addicted tum ho sakti ho ☕😏",
+                "Ek achhe espresso ki tarah, aapki presence mein ek rich aur rare depth hai... How do you take your coffee? ☕✨",
+                "Aapka aesthetic dekh ke lagta hai you appreciate quiet specialty cafes over crowded spots... Am I right? ☕",
+                "Coffee date toh bahaana hai... I'm more interested in the conversation you bring with it 😉☕",
             ],
             "funny": [
-                "Coffee lover ho? Toh yeh batao, bina coffee ke insaan rehte ho ya zombie ban jaate ho? 🧟‍♂️☕",
-                "Coffee first, baaki saari life ki tension baad me! Blue Tokai ya Starbucks? 😂",
-                "Sach batana, coffee pasand hai ya bas aesthetic cafe pictures lena pasand hai? ☕📸",
+                "Ek important compatibility test: Do you actually appreciate good roast coffee, ya sugar with a drop of caffeine? 😂☕",
+                "Deal karte hain: Main coffee spot decide karta hoon, and you judge my taste ruthlessly. Fair? ☕😏",
             ],
             "respectful": [
-                "Hey! Noticed you love coffee. Any favourite local cafe you’d recommend around here? ☕",
-                "Hello! Always great to meet a fellow coffee enthusiast. What's your go-to brew? ☕😊",
-                "Hi! Hope your day is going great. Are you more of a cappuccino or black coffee person? ☕",
+                "Good evening. Noticed your love for coffee. What's one quiet café in town where you truly enjoy spending time? ☕",
+                "Hello! Always refreshing to connect with someone who appreciates a great roast. What’s your go-to brew? ☕✨",
             ],
             "casual": [
-                "Hey! Chai vs Coffee debate me tumhara stand kya hai? ☕👀",
-                "Cold coffee with ice cream ya classic espresso? Asking the real questions here! ☕",
-                "Hey there, coffee addict spotted! Kaunsi coffee abhi tak ki best rahi hai? ☕",
+                "Slow Sunday mornings with pour-over coffee, or a quick cortado before tackling the day? ☕",
+                "Specialty roast vs classic café blend... where does your palate usually lean? ☕",
+            ],
+            "mysterious": [
+                "Coffee table books ya late night espresso conversations... aapki profile mein dono ka ek subtle balance lagta hai 🔮☕",
+            ],
+            "suspenseful": [
+                "Maine shahar mein ek hidden café dhoonda hai jiska ambiance is unreal... but you only get the location if you pass one test ⏳☕",
             ]
         },
         "hindi": {
             "flirty": [
-                "कॉफ़ी का बहाना और आपके साथ एक ख़ूबसूरत शाम... कैसा रहेगा? ☕✨",
-                "कॉफ़ी तो अच्छी होती ही है, पर आपकी मुस्कान से दिन बन जाए। ☕😊",
+                "एक बेहतरीन कॉफ़ी की तरह आपके व्यक्तित्व में भी एक ख़ास कशिश और गरिमा महसूस होती है ☕✨",
+                "कॉफ़ी का तो सिर्फ़ एक बहाना है, असल दिलचस्पी आपकी बातों और सोच को जानने में है 😊☕",
             ],
             "funny": [
-                "कॉफ़ी की तलब है या बस कैफ़े में बैठने का शौक़? सच बताइए! 😂☕",
-                "दिन की शुरुआत कॉफ़ी से या नींद में ही आधा दिन गुज़रता है? ☕😴",
+                "एक ज़रूरी सवाल: क्या आपको वाक़ई अच्छी कॉफ़ी पसंद है या सिर्फ़ सुकून भरे कैफ़े का माहौल? 😂☕",
             ],
             "respectful": [
-                "नमस्ते! आपकी प्रोफ़ाइल में देखा कि आपको कॉफ़ी पसंद है। आपका पसंदीदा कैफ़े कौन सा है? ☕",
-                "हेलो! एक अच्छे कॉफ़ी लवर से मिलकर अच्छा लगा। आप कैपुचीनो पसंद करते हैं या ब्लैक कॉफ़ी? ☕😊",
+                "नमस्ते। आपकी प्रोफ़ाइल में कॉफ़ी के प्रति आपकी पसंद नज़र आई। आपका पसंदीदा कॉफ़ी स्पॉट कौन सा है? ☕",
             ],
             "casual": [
-                "नमस्ते! चाय या कॉफ़ी, दोनों में आपका दिल किस पर आता है? ☕",
-                "हेलो! कभी अच्छी फ़िल्टर कॉफ़ी ट्राई की है? ☕",
+                "फ़ुर्सत की शाम में पसंदीदा कॉफ़ी के साथ सुकून से बैठना या दोस्तों के साथ बातचीत? ☕",
+            ],
+            "mysterious": [
+                "आपकी पसंद में एक शांत सादगी और गहरा स्वाद नज़र आता है जो बहुत कम लोगों में मिलता है ☕🌙",
+            ],
+            "suspenseful": [
+                "शहर में एक ऐसा कॉफ़ी कॉर्नर है जो हर किसी को नहीं पता... क्या आप उस राज़ को जानने के लिए तैयार हैं? ⏳☕",
             ]
         },
         "english": {
             "flirty": [
-                "I like my coffee like I like my matches—hot, sweet, and keeping me up at night 😉☕",
-                "Coffee first, but dinner date next? What do you say? ✨☕",
+                "Like a perfectly pulled espresso, you have an unmistakable depth and sophistication. How do you take your coffee? ☕✨",
+                "A coffee date is an easy excuse, but it's the calibre of your conversation that caught my attention 😉☕",
             ],
             "funny": [
-                "Are you a morning coffee person or a 'don't talk to me before 11 AM' person? 😂☕",
-                "Coffee first, Hogwarts later? 😂☕",
+                "Quick compatibility checkpoint: do you actually appreciate single-origin coffee, or is it 90% milk and syrups? 😂☕",
+                "Deal: I pick the coffee spot, and you have full permission to critique my taste in cafes. Deal? ☕😏",
             ],
             "respectful": [
-                "Hey! Loved your profile. What’s your absolute favourite coffee spot in town? ☕😊",
-                "Hi there! Always refreshing to meet someone who appreciates good coffee. Americano or Latte? ☕",
+                "Good evening. Always a pleasure to connect with someone who appreciates great coffee. What's your favourite roastery? ☕✨",
+                "Hello! Loved the aesthetic in your profile. What’s the one café you go to when you need to disconnect and think? ☕",
             ],
             "casual": [
-                "Chai or Coffee—pick your side and defend your choice! ☕",
-                "Hey! If we went for coffee, what’s your ultimate drink order? ☕",
+                "Slow Sunday pour-overs or a quick morning Americano? What’s your daily ritual? ☕",
+            ],
+            "mysterious": [
+                "There’s an understated quiet elegance about your coffee taste that tells me you value quality over noise 🔮☕",
+            ],
+            "suspenseful": [
+                "I know a hidden espresso bar that feels like it belongs in Milan... but I only reveal the address on one condition ⏳☕",
             ]
         }
     },
     "travel": {
         "hinglish": {
             "flirty": [
-                "Mountains pasand hai ya beach? Kyunki meri next trip partner tum lag rahi ho ✨🏖️",
-                "Passport ready hai? Kyunki tumhare sath travel karna magical lag raha hai ✈️😉",
+                "You have that effortlessly worldly aura... like someone who travels for the soul rather than just postcards ✨✈️",
+                "Traveling with someone tells you everything about their character. What kind of travel companion are you? 😉🗺️",
             ],
             "funny": [
-                "Traveler ho? Bag pack karne me 10 minute lagte hain ya poora ghar utha ke le jaate ho? 😂🎒",
-                "Mountains me shanti dhoondhte ho ya Reels banane jaate ho? Sach sach batana! 🏔️📸",
+                "Tell me you're not the traveler with an hourly spreadsheet itinerary... spontaneous exploration is mandatory! 😂✈️",
+                "The real airport test: Are you calmly sipping an espresso at the lounge, or sprinting to the boarding gate? 😂🧳",
             ],
             "respectful": [
-                "Hey! You seem to love traveling. What's the most breathtaking place you've visited so far? ✈️🏔️",
-                "Hi! Inspiring travel photos. Which destination is currently at the top of your bucket list? 🗺️😊",
+                "Good evening. Your travel photos reflect a genuine appreciation for culture and landscapes. What destination left the deepest mark on you? 🗺️✨",
             ],
             "casual": [
-                "Mountains or Beaches? Let the timeless battle begin! 🏖️⛰️",
-                "Spontaneous road trip ya fully planned vacation? Tum kis category me aate ho? 🚗",
+                "Secluded coastal escapes or historic old-town architecture? What recharges your mind best? 🌊🏛️",
+            ],
+            "mysterious": [
+                "Tumhare safar ke pictures dekh ke lagta hai you search for places that have an untold story... 🔮✈️",
+            ],
+            "suspenseful": [
+                "If we booked a one-way ticket tonight with zero planning, where would your instincts take us? ⏳✈️",
             ]
         },
         "hindi": {
             "flirty": [
-                "पहाड़ों की वादियों में आपके साथ एक सफ़र हो जाए तो क्या बात है ✨🏔️",
-                "सफ़र ख़ूबसूरत हो जाता है जब हमसफ़र ख़ास हो 😊✈️",
+                "आपकी आँखों में एक मुसाफ़िर की रूह और एक ख़ूबसूरत ठहराव दोनों नज़र आते हैं ✨✈️",
+                "सफ़र तो बहुत लोग करते हैं, पर मंज़िल को महसूस करने का हुनर बहुत कम में होता है... जैसे आप में 😊",
             ],
             "funny": [
-                "ट्रैवल करने जाते हैं या सिर्फ़ इंस्टाग्राम के लिए फ़ोटो खिंचवाने? 😂📸",
-                "पहाड़ बुला रहे हैं या सिर्फ़ मंडे की मीटिंग से भागना चाहते हैं? 🏔️😂",
+                "सफ़र में हर घंटे की प्लानिंग करते हैं या रास्ते जो मोड़ लें, वहाँ सुकून ढूंढ लेते हैं? 😂🗺️",
             ],
             "respectful": [
-                "नमस्ते! आपको घूमना पसंद है, अब तक की सबसे यादगार यात्रा कौन सी रही है? ✈️",
-                "हेलो! आपकी अगली ड्रीम डेस्टिनेशन कौन सी है? 🗺️😊",
+                "नमस्ते। आपकी यात्रा की तस्वीरें बहुत ही परिपक्व और ख़ूबसूरत हैं। किस जगह ने आपके दिल को सबसे ज़्यादा छुआ? ✈️",
             ],
             "casual": [
-                "पहाड़ या समुद्र का किनारा? आपका दिल कहाँ सुकून पाता है? 🏖️🏔️",
-                "अचानक बना हुआ ट्रिप या पूरी प्लानिंग के साथ? 🚗",
+                "पहाड़ों का शांत सुकून या समंदर की लहरों की गहराई? आपकी रूह कहाँ ठहरती है? 🌊🏔️",
+            ],
+            "mysterious": [
+                "आपकी प्रोफ़ाइल में एक ऐसा शांत सफ़रनामा दिखता है जो शायद हर किसी के समझ में नहीं आ सकता 🌙✈️",
+            ],
+            "suspenseful": [
+                "अगर आपको अभी इसी वक़्त बिना किसी तैयारी के एक अनदेखे सफ़र पर निकलना पड़े, तो क्या आप तैयार हैं? ⏳✈️",
             ]
         },
         "english": {
             "flirty": [
-                "You’ve got that wanderlust look. Mind if I tag along on your next adventure? ✨✈️",
-                "Mountains or beaches? Either way, you’re making the view look good 😉",
+                "You have that effortless, worldly poise that suggests you travel for perspective, not just photos ✨✈️",
+                "They say you only truly know someone after traveling with them. What kind of co-traveler are you? 😉",
             ],
             "funny": [
-                "Are you an 'on-time for the flight' traveler or a 'running through security barefoot' traveler? 😂🏃",
-                "Travel bug detected! Do you actually unpack, or does the suitcase live on the floor? 🧳😂",
+                "Crucial test: Are you an obsessively color-coded itinerary traveler, or do you let the city guide you? 😂🗺️",
+                "Lounge with a book before takeoff, or sprinting past duty-free at final call? Be honest! 😂🛫",
             ],
             "respectful": [
-                "Hey! What’s one place you’ve traveled to that genuinely changed your perspective? ✈️🌍",
-                "Hi! Amazing travel vibe on your profile. Where’s your next stop? 🗺️😊",
+                "Good evening. Your travel captures reflect a quiet reverence for culture. Which journey influenced your outlook the most? 🌍✨",
             ],
             "casual": [
-                "Solo traveler or road trip with besties kind of vibe? 🚗✈️",
-                "Top destination on your bucket list right now? 📍",
+                "Quiet coastal retreats or dense cultural capitals? What’s your preferred headspace when you escape? 🌊🏛️",
+            ],
+            "mysterious": [
+                "You look like someone who seeks out the places absent from the travel guides... intriguing 🔮",
+            ],
+            "suspenseful": [
+                "If you had to pack a single carry-on right now for a spontaneous departure, where are we landing? ⏳✈️",
             ]
         }
     },
     "gym": {
         "hinglish": {
             "flirty": [
-                "Gym routine toh strong hai, but kya tumhara dil bhi itna hi strong hai? 😉💪",
-                "Cardio pasand hai? Kyunki tumhari profile dekh ke heartbeat waise hi fast ho gayi ✨🏋️",
+                "Physical fitness is impressive, but the mental discipline and poise behind it is what truly stands out about you 💪✨",
+                "You carry yourself with unmistakable confidence and posture. Clearly that dedication pays off 😉",
             ],
             "funny": [
-                "Leg day pe gym jaate ho ya chupke se skip maar dete ho? Sach batana! 😂🍗",
-                "Gym jaate ho workout karne ya शीशे ke aage pump dekh ke selfies lene? 🤳💪",
+                "Fitness debate: Is the post-workout clarity real, or do we just convince ourselves so we survive the routine? 😂💪",
+                "Tell me you balance that discipline with an unapologetic appreciation for great wine and desserts! 🍰🏋️",
             ],
             "respectful": [
-                "Hey! Impressed by your fitness dedication. What’s your favourite workout routine? 🏋️‍♂️✨",
-                "Hi! Consistency in fitness is admirable. How long have you been training? 💪😊",
+                "Hello! Consistency and self-discipline always speak volumes about a person's character. Admirable dedication. 💪✨",
             ],
             "casual": [
-                "Pre-workout me coffee ya direct beast mode? ☕💪",
-                "Gym playlist me Punjabi beats ya Phonk/Rock? What gets you pumped? 🎧🏋️",
+                "How do you balance high energy training with a demanding schedule? Always curious about high-performers' routines. 🏋️",
+            ],
+            "mysterious": [
+                "Fitness is often meditation in motion... aapki eyes mein wahi quiet focus nazar aata hai 🔮💪",
+            ],
+            "suspenseful": [
+                "I have a challenge for our first workout or run... think you can keep pace, or should I be the one worried? ⏳😏",
             ]
         },
         "hindi": {
             "flirty": [
-                "फ़िटनेस का शौक़ तो कमाल है, और आपकी मुस्कान उससे भी बेहतर 😊💪",
+                "फ़िटनेस का अनुशासन अपनी जगह है, पर आपकी गरिमा और सादगी सबसे ज़्यादा दिल जीतती है ✨💪",
             ],
             "funny": [
-                "लेग डे से डर लगता है या बहादुरी से करते हैं? सच बताइए! 😂",
+                "वर्कआउट का अनुशासन कमाल है, पर क्या कभी दिल खोलकर पसंदीदा खाने का लुत्फ़ भी उठाते हैं? 😂🍰",
             ],
             "respectful": [
-                "नमस्ते! आपकी फ़िटनेस के प्रति लगन तारीफ़ के क़ाबिल है। आप कब से वर्कआउट कर रहे हैं? 💪",
+                "नमस्ते। सेहत और अनुशासन के प्रति आपका समर्पण वाक़ई तारीफ़ के क़ाबिल है। 💪✨",
             ],
             "casual": [
-                "वर्कआउट के साथ म्यूज़िक कौन सा सुनते हैं? 🎧",
+                "व्यस्त दिनचर्या के बीच ख़ुद को फ़िट और ऊर्जावान रखने का आपका क्या राज़ है? 🏋️",
+            ],
+            "mysterious": [
+                "शारीरिक शक्ति से कहीं ज़्यादा आपका मानसिक संयम आपकी प्रोफ़ाइल में साफ़ झलकता है 🌙💪",
+            ],
+            "suspenseful": [
+                "अनुशासन में तो आप अव्वल हैं... क्या ज़िंदगी के रोमांचक मोड़ों पर भी इतना ही भरोसा रखते हैं? ⏳",
             ]
         },
         "english": {
             "flirty": [
-                "Is it cardio day? Because my heart did a double take when I saw your profile 😉💪",
+                "Physical fitness is admirable, but it’s the quiet mental composure behind it that truly commands attention 💪✨",
+                "You hold yourself with the unmistakable posture of someone who commands their own discipline 😉",
             ],
             "funny": [
-                "Be honest: do you actually like burpees or is that just an urban myth? 😂",
+                "Tell me you balance the high-performance gym lifestyle with an unapologetic appreciation for good wine and pasta! 😂🍝",
             ],
             "respectful": [
-                "Hey! Great to see someone passionate about fitness. What’s your current goal? 🏋️‍♂️✨",
+                "Good evening. Consistency in wellness speaks deeply to character and self-respect. Commendable work. 💪✨",
             ],
             "casual": [
-                "Gym playlist check: EDM, Hip-Hop, or heavy metal? 🎧💪",
+                "How do you usually balance high-intensity fitness with the demands of work and life? 🏋️",
+            ],
+            "mysterious": [
+                "There is a focused calm in your eyes that usually belongs to people who push their limits daily 🔮",
+            ],
+            "suspenseful": [
+                "I have a subtle bet on who holds stronger stamina—care to test it on a sunrise run? ⏳😏",
             ]
         }
     },
     "foodie": {
         "hinglish": {
             "flirty": [
-                "Pehle pet pooja, fir prem duja... dinner date pe chalein? 🍕✨😉",
-                "Foodie ho? Fir toh meri favourite dish tumhare sath share karne ka mann kar raha hai 🍝😋",
+                "Great dining is an art, but exceptional company turns it into an unforgettable experience. What's your ideal dinner evening? 🍷✨",
+                "Aapki profile dekh ke lagta hai you have refined taste. I'd love to introduce you to a quiet hidden bistro I know 😉🍽️",
             ],
             "funny": [
-                "Pani Puri ka paani teekha ya meetha? Is question pe humari dosti depend karegi! 😂🍲",
-                "Momos with extra spicy red chutney ya zero spice? Reveal your truth! 🥟🌶️",
+                "We can disagree on philosophy, but if you're the type who orders the safe option at every restaurant, we might have words! 😂🍷",
+                "Fine dining tasting menu with great wine, or an unpretentious hole-in-the-wall with unmatched flavors? 🍝",
             ],
             "respectful": [
-                "Hey! A fellow foodie! What’s your comfort street food spot that never disappoints? 🍜😊",
-                "Hi! If you could only eat one cuisine for the rest of your life, what would it be? 🍕🌮",
+                "Good evening. It’s always wonderful to connect with someone who appreciates genuine culinary craft. What cuisine fascinates you most? 🍽️✨",
             ],
             "casual": [
-                "Late night food cravings me Maggi ya Swiggy order? 🍜🌙",
-                "Pizza crust chhodte ho ya poora kha jaate ho? Important question! 🍕😂",
+                "Cooking an elaborate meal at home with jazz playing, or discovering an intimate new restaurant? What's your pace? 🍷🕯️",
+            ],
+            "mysterious": [
+                "Taste in food usually reflects how someone experiences life... aapka taste kaafi nuanced lagta hai 🔮🍽️",
+            ],
+            "suspenseful": [
+                "I know a hidden supper club that serves the most remarkable flavours in the city... condition yeh hai ki menu secret rahega ⏳🍷",
             ]
         },
         "hindi": {
             "flirty": [
-                "खाने के शौक़ीन हैं तो चलिए कभी एक ख़ास डिनर पर मिलते हैं 🍝✨",
+                "ज़ायके की परख अपनी जगह है, पर एक ख़ूबसूरत शाम में अच्छी सोहबत का कोई मुक़ाबला नहीं 🍷✨",
             ],
             "funny": [
-                "गोलगप्पे का पानी तीखा पसंद है या मीठा? सोच समझकर बताइएगा! 😂🍲",
+                "क्या आप भी उन लोगों में से हैं जो नया मेन्यू देखकर भी वही अपना पुराना पसंदीदा डिश ऑर्डर करते हैं? 😂🍝",
             ],
             "respectful": [
-                "नमस्ते! आपकी प्रोफ़ाइल देखकर लगा आप खाने के शौक़ीन हैं। आपका पसंदीदा व्यंजन क्या है? 🍜",
+                "नमस्ते। बेहतरीन भोजन और ज़ायके की समझ होना अपने आप में एक कला है। आपका पसंदीदा व्यंजन कौन सा है? 🍽️",
             ],
             "casual": [
-                "देर रात की भूख में मैगी या जोमैटो? 🍜😋",
+                "घर पर सुकून से कुछ ख़ास पकाना या शहर के किसी उम्दा रेस्तराँ में शाम बिताना? 🍷",
+            ],
+            "mysterious": [
+                "स्वाद की समझ आपके जीवन के प्रति गहरे दृष्टिकोण को दर्शाती है... बहुत प्रभावित करने वाली प्रोफ़ाइल है 🌙",
+            ],
+            "suspenseful": [
+                "अगर मैं आपको एक ऐसा डिनर ऑफर करूँ जिसका मेन्यू पूरी तरह एक सरप्राइज़ हो, तो क्या आप तैयार हैं? ⏳🍽️",
             ]
         },
         "english": {
             "flirty": [
-                "They say the way to the heart is through food... care to test that theory on a dinner date? 🍝✨",
+                "Fine food is an art, but extraordinary company turns it into an experience. What does an exceptional evening look like to you? 🍷✨",
+                "You strike me as someone with discerning taste. I know an intimate little spot you'd thoroughly appreciate 😉",
             ],
             "funny": [
-                "Do you share food, or are you in the 'Joey doesn't share food' club? 😂🍕",
+                "We can agree on almost anything, but ordering the safest chicken dish at a specialized restaurant is where I draw the line! 😂🍷",
             ],
             "respectful": [
-                "Hey! What’s the ultimate hidden gem restaurant you recommend to everyone? 🍜✨",
+                "Good evening. Always a pleasure connecting with someone who appreciates the nuance of culinary craft. What cuisine inspires you? 🍽️✨",
             ],
             "casual": [
-                "Street food or fine dining? Where does your soul truly belong? 🌮✨",
+                "Unwinding with an artisanal home-cooked meal, or exploring a new corner bistro on a Friday night? 🍷",
+            ],
+            "mysterious": [
+                "Palate often mirrors emotional range... yours seems wonderfully sophisticated 🔮",
+            ],
+            "suspenseful": [
+                "I have a reservation at an undisclosed speakeasy this weekend... care to join for the reveal? ⏳🍸",
             ]
         }
     },
     "movies": {
         "hinglish": {
             "flirty": [
-                "Movie nights with popcorn and cuddles... ya Marvel marathon with deep talks? 🎬🍿✨",
-                "Tumhara movie taste dekh ke lagta hai humari script pehle se written thi 😉🎞️",
+                "Cinema taste tells you everything about someone's emotional depth. What's one film that genuinely stayed with you? 🎬✨",
+                "A vintage film screening, quiet conversation, and great wine... sounds like an evening with high potential 😉🎞️",
             ],
             "funny": [
-                "Movie dekhte waqt beech me questions poochne walo me se ho ya silent watcher? 😂🤫",
-                "Binge-watching me 'Just one more episode' bol ke subah 4 baje tak jaagne ka record hai? 🥱🍿",
+                "Movie pact: If we watch a psychological thriller, we have to spend at least 30 minutes debating the motives over drinks! 🎬🍷",
             ],
             "respectful": [
-                "Hey! Noticed your passion for cinema. What's one movie you could rewatch anytime? 🎬😊",
-                "Hi! What’s your take on recent Bollywood/Hollywood releases? Anything worth watching? 🍿🎥",
+                "Good evening. Cinema that moves us often reveals our inner values. What film has shaped your perspective most? 🎬✨",
             ],
             "casual": [
-                "Comfort movie/series batao jo sad mood me instantly theek kar deti hai! 🎬🍿",
-                "Horror movies dekh ke dar lagta hai ya popcorn khao aur haso? 👻🍿",
+                "Classic slow-burn dramas or edge-of-the-seat psychological thrillers? Where does your taste gravitate? 🎞️",
+            ],
+            "mysterious": [
+                "You have that cinematic stillness in your photos... like a character with an unrevealed back-story 🔮🎬",
+            ],
+            "suspenseful": [
+                "Tell me the twist in your favourite movie without naming the movie... let's see if I can deduce it ⏳🎥",
             ]
         },
         "hindi": {
             "flirty": [
-                "फ़िल्मों का शौक़ है तो कभी साथ में पॉपकॉर्न और एक अच्छी फ़िल्म हो जाए? 🍿🎬",
+                "सिनेमा की समझ इंसान की संवेदनशीलता को बयाँ करती है... आपकी पसंद में वही गहराई झलकती है 🎬✨",
             ],
             "funny": [
-                "फ़िल्म देखते वक़्त बीच में सवाल पूछने की आदत तो नहीं है आपकी? 😂🤫",
+                "फ़िल्म ख़त्म होने के बाद क्या आप भी उसके किरदारों और अंत पर घंटों बहस करने वालों में से हैं? 😂🎬",
             ],
             "respectful": [
-                "नमस्ते! आपकी पसंदीदा क्लासिक फ़िल्म कौन सी है जिसे आप बार-बार देख सकते हैं? 🎬",
+                "नमस्ते। आपकी प्रोफ़ाइल में सिनेमा के प्रति आपकी समझ अच्छी लगी। कौन सी ऐसी फ़िल्म है जो दिल के सबसे क़रीब है? 🎥",
             ],
             "casual": [
-                "थ्रिलर फ़िल्में या रोमांटिक कॉमेडी? आपका मूड किस पर रहता है? 🍿🎥",
+                "सार्थक सिनेमा या क्लासिक रेट्रो कहानियाँ? आपका मूड किस तरफ़ रहता है? 🎬",
+            ],
+            "mysterious": [
+                "आपकी तस्वीरों में एक ऐसा सिनेमाई ठहराव है जो बरबस ध्यान अपनी ओर खींच लेता है 🌙🎞️",
+            ],
+            "suspenseful": [
+                "अगर हमारी इस मुलाक़ात की एक पटकथा लिखी जाए, तो अगला दृश्य क्या होना चाहिए? ⏳🎬",
             ]
         },
         "english": {
             "flirty": [
-                "Movie marathon on the couch—you bring the popcorn, I bring the charm 😉🍿",
+                "Taste in cinema is a direct window into emotional intelligence. What’s one film that permanently altered your worldview? 🎬✨",
+                "A private screening, thoughtful conversation, and a good vintage... sounds like a well-spent evening 😉🎞️",
             ],
             "funny": [
-                "Are you a cinema snob or can you enjoy a delightfully trashy Bollywood/Hollywood film? 😂",
+                "A non-negotiable condition: If we watch a thriller together, we dissect the protagonist's psychology for an hour afterward! 😂🎬",
             ],
             "respectful": [
-                "Hey! What’s the best movie you’ve watched this year so far? 🎬✨",
+                "Good evening. Great storytelling leaves an enduring impression. What cinematic work has stayed with you the longest? 🎬✨",
             ],
             "casual": [
-                "If you had to recommend just ONE movie right now, what’s your pick? 🍿",
+                "Slow-burn neo-noirs or character-driven independent dramas? What holds your attention best? 🎞️",
+            ],
+            "mysterious": [
+                "There is an evocative, cinematic poise in how you carry yourself... quite captivating 🔮",
+            ],
+            "suspenseful": [
+                "Describe the turning point in your life as if it were a film climax... I'm listening ⏳🎥",
             ]
         }
     },
     "music": {
         "hinglish": {
             "flirty": [
-                "Tumhara music taste dekh ke laga humari vibe naturally sync ho jayegi 🎵✨😉",
-                "Ek romantic playlist banai hai... sunna chahogi mere sath? 🎧🎶",
+                "Music is an intimate reflection of the soul. Send me one track that best captures your headspace right now 🎧✨",
+                "Aapka music taste reflects a certain depth and elegance... it immediately made me stop and listen 🎶",
             ],
             "funny": [
-                "Shower singer ho ya car me full blast pe besura gaane ka confidence hai? 😂🚿🎤",
-                "Spotify Wrapped dekh ke sharam aati hai ya proud feel hota hai? 😂🎧",
+                "Does your playlist transition gracefully from vintage soulful classics straight into intense late-night beats? 😂🎧",
             ],
             "respectful": [
-                "Hey! What’s on repeat on your headphones right now? Always looking for new tracks! 🎵✨",
-                "Hi! Who is that one artist you can listen to anytime without skipping? 🎶😊",
+                "Good evening. Music often mirrors a person’s inner cadence. What artist or composer has been your anchor lately? 🎵✨",
             ],
             "casual": [
-                "Arijit Singh at 2 AM ya AP Dhillon on highway? Pick your mood! 🚗🎵",
-                "Concerts pasand hain ya acoustic cafe live sessions? 🎸🎤",
+                "Live acoustic sets in a dimly lit lounge, or vinyl records on a quiet night in? 🎸🕯️",
+            ],
+            "mysterious": [
+                "The melodies we return to in private reveal who we truly are... what does your secret playlist sound like? 🔮🎶",
+            ],
+            "suspenseful": [
+                "Pick one song that sets the exact mood for our first meeting... choose carefully ⏳🎧",
             ]
         },
         "hindi": {
             "flirty": [
-                "संगीत की समझ और आपकी सादगी... दोनों ही दिल जीत लेते हैं 🎵✨",
+                "संगीत की समझ और आपकी सादगी... दोनों में एक ऐसा सुर है जो दिल को सुकून पहुँचाता है 🎵✨",
             ],
             "funny": [
-                "गाना सिर्फ़ बाथरूम में गाते हैं या कभी किसी को सुनाया भी है? 😂🎤",
+                "क्या आपकी प्लेलिस्ट में भी ग़ज़लों से लेकर रॉक म्यूज़िक तक का अप्रत्याशित मेल है? 😂🎧",
             ],
             "respectful": [
-                "नमस्ते! आपका सबसे पसंदीदा गायक या बैंड कौन सा है? 🎶",
+                "नमस्ते। संगीत इंसान के जज़्बातों का आईना होता है। किस धुन या गीत से आपको सबसे गहरा लगाव है? 🎶",
             ],
             "casual": [
-                "सूफ़ी संगीत या रेट्रो बॉलीवुड क्लासिक्स? 🎧✨",
+                "धीमी आवाज़ में बजता सूफ़ी संगीत या पुराने सदाबहार नग़मे? शाम को क्या सुनना पसंद करते हैं? 🎧",
+            ],
+            "mysterious": [
+                "आपकी ख़ामोशी में भी एक ख़ूबसूरत संगीत महसूस होता है... बहुत शालीन व्यक्तित्व है आपका 🌙🎵",
+            ],
+            "suspenseful": [
+                "एक ऐसा गीत बताइए जो आपके किसी अनकहे जज़्बात को बयाँ करता हो... ⏳🎶",
             ]
         },
         "english": {
             "flirty": [
-                "Send me your favourite song so I know how it feels inside your head 😉🎧",
+                "A person's playlist is their most honest confession. Share the one song that speaks closest to your mood tonight 🎧✨",
+                "There’s an undeniable sophistication in the music you lean into. It caught my attention instantly 🎶",
             ],
             "funny": [
-                "What’s your guilty pleasure song you’d never play in front of friends? 😂🎵",
+                "Tell me your musical taste has the maturity to appreciate classic vinyl and the audacity to enjoy guilty pleasures! 😂🎧",
             ],
             "respectful": [
-                "Hey! What song is currently on heavy rotation on your Spotify? 🎧✨",
+                "Good evening. Musical taste often reflects one’s emotional depth. Who is an artist you never grow weary of? 🎵✨",
             ],
             "casual": [
-                "Live gig in a packed stadium or cozy unplugged acoustic session? 🎸",
+                "Intimate acoustic sessions in a quiet lounge, or vinyl spinning while you unwind at home? 🎸🕯️",
+            ],
+            "mysterious": [
+                "What melody plays in the background when the rest of the world goes quiet? 🔮🎶",
+            ],
+            "suspenseful": [
+                "Send me the one track you wouldn't play for just anyone... let's see what it reveals ⏳🎧",
             ]
         }
     },
     "pets": {
         "hinglish": {
             "flirty": [
-                "Doggos pasand hain? Good news: dog lovers naturally mere dil ke kareeb hote hain 🐕✨😉",
-                "Kya tumhare pet se approval lena padega tumse milne ke liye? Ready for the test! 🐾😊",
+                "People with quiet empathy towards animals naturally possess a rare warmth... like you 🐾✨",
             ],
             "funny": [
-                "Sach batao, agar doggo ne mujhe reject kar diya toh humara koi future hai? 😂🐕",
-                "Cute dog pictures send karne ki permit mil sakti hai yahan? 🐶📱",
+                "Important protocol: If your pet judges me upon arrival, do I get a second appeal or instant disqualification? 😂🐾",
             ],
             "respectful": [
-                "Hey! Seeing pets on your profile instantly brought a smile. Do you have a furry friend? 🐾😊",
-                "Hi! Pet parents are truly the kindest people. Tell me about your pet! 🐕✨",
+                "Good evening. The way someone treats their animals always speaks volumes about their integrity and heart. 🐾✨",
             ],
             "casual": [
-                "Dog person, Cat person, or overall animal lover? 🐕🐈",
-                "Golden Retriever energy ya Black Cat energy? Tumhara kya vibe hai? 🐾",
+                "How does your pet react to new people—instant loyalty or discerning observation? 🐕🐈",
+            ],
+            "mysterious": [
+                "Animals have an instinct for genuine energy... I suspect yours is exceptionally loyal to you 🔮🐾",
+            ],
+            "suspenseful": [
+                "Passing the pet inspection might be the highest-stakes exam of this match... accept the challenge? ⏳🐾",
             ]
         },
         "hindi": {
             "flirty": [
-                "जानवरों से प्यार करने वाले लोग दिल के बहुत साफ़ होते हैं... जैसे आप 😊🐾",
+                "मासूम बेज़ुबानों से लगाव रखने वाले लोगों के दिल में एक ख़ास नज़ाकत और हमदर्दी होती है... जैसे आप में 🐾✨",
             ],
             "funny": [
-                "अगर आपके पालतू जानवर ने मुझे भौंक दिया तो क्या हमारी डेट कैंसिल हो जाएगी? 😂🐕",
+                "अगर आपके पेट ने मुझे पहली नज़र में मंज़ूर नहीं किया, तो क्या दूसरा मौक़ा मिलेगा? 😂🐕",
             ],
             "respectful": [
-                "नमस्ते! क्या आपके पास कोई पेट है? उनके बारे में कुछ बताइए! 🐾😊",
+                "नमस्ते। बेज़ुबानों के प्रति आपकी दयालुता और प्यार आपके साफ़ दिल की गवाही देता है। 🐾✨",
             ],
             "casual": [
-                "कुत्ते या बिल्लियाँ, आपकी पहली पसंद कौन सी है? 🐕🐈",
+                "घर में पेट्स की मौजूदगी पूरे माहौल में एक सुकून भर देती है। आपका उनके साथ दिन कैसा बीतता है? 🐾",
+            ],
+            "mysterious": [
+                "जानवर साफ़ रूह को तुरंत पहचान लेते हैं... आपकी प्रोफ़ाइल में वही सुकून नज़र आता है 🌙🐾",
+            ],
+            "suspenseful": [
+                "क्या आपका पेट नए लोगों को आसानी से अपनाता है या उसका भरोसा जीतना एक इम्तिहान है? ⏳🐾",
             ]
         },
         "english": {
             "flirty": [
-                "I hope your pet likes me, because I’m already planning on winning you both over 😉🐾",
+                "Gentle compassion toward animals is one of the most attractive traits a person can carry. You have it effortlessly 🐾✨",
             ],
             "funny": [
-                "Will your dog approve of me, or do I need to bring treats to our first meeting? 😂🐶",
+                "Does your pet conduct a formal interview, or can I win them over with proper decorum and treats? 😂🐾",
             ],
             "respectful": [
-                "Hey! Animals on a profile are always the best green flag. Tell me about your pet! 🐾✨",
+                "Good evening. How someone nurtures their companions reveals genuine character. Beautiful bond you share. 🐾✨",
             ],
             "casual": [
-                "Golden Retriever personality or moody cat energy? Where do you fall? 🐾😂",
+                "Discerning judge of character or immediate best friend? What’s your pet’s temperament? 🐕🐈",
+            ],
+            "mysterious": [
+                "Animals instinctively gravitate toward grounded souls. It makes complete sense in your case 🔮🐾",
+            ],
+            "suspenseful": [
+                "Winning your approval is step one; surviving your pet's scrutiny is the real final boss ⏳🐾",
             ]
         }
     },
     "gaming": {
         "hinglish": {
             "flirty": [
-                "Game me harana aasan hai ya tumhare dil ko jeetna? Challenge accepted 😉🎮",
-                "Player 2 mil gaya ya abhi bhi solo lobby me ho? 🎮✨",
+                "Strategic intellect is attractive... do you play to win, or play for the art of the challenge? 😉🎮",
             ],
             "funny": [
-                "Match harne ke baad rage quit karte ho ya shanti se controller rakhte ho? 😂🎮",
-                "Gaming skills achhi hain ya bas teammates ko blame karne me pro ho? 🕹️😂",
+                "In competitive situations, are you calmly analytical, or does the competitive streak take over entirely? 😂🎮",
             ],
             "respectful": [
-                "Hey! Fellow gamer spotted! What’s your all-time favourite game or console? 🎮✨",
-                "Hi! What are you currently playing? Always looking for good recommendations! 🕹️😊",
+                "Good evening. Interactive storytelling and complex game design are true modern art forms. What narrative moved you most? 🎮✨",
             ],
             "casual": [
-                "PC Master Race, PlayStation, or Mobile Gaming? Let's settle this! 🎮",
-                "Co-op gaming nights ya competitive matchmaking? 🕹️",
+                "Immersive story campaigns that demand focus, or high-strategy co-op sessions? 🕹️",
+            ],
+            "mysterious": [
+                "Strategy in complex games often mirrors how a person makes decisions in life... fascinating 🔮🎮",
+            ],
+            "suspenseful": [
+                "1v1 match where the loser buys dinner at the winner's choice of venue. Do you take the wager? ⏳🎮",
             ]
         },
         "hindi": {
             "flirty": [
-                "खेल में तो आप माहिर हैं, पर क्या दिल के खेल में भी जीतना पसंद है? 🎮😉",
+                "खेल में रणनीति और ज़िंदगी में गरिमा... दोनों का तालमेल बहुत कम लोगों में मिलता है 🎮✨",
             ],
             "funny": [
-                "हारने पर गुस्सा आता है या आराम से पानी पीते हैं? 😂🎮",
+                "हारने पर शांत मुसकुराहट या फिर अंदर ही अंदर अगली बाज़ी जीतने की ज़िद? सच बताइएगा! 😂🎮",
             ],
             "respectful": [
-                "नमस्ते! आपका पसंदीदा गेम कौन सा है? 🎮✨",
+                "नमस्ते। खेलों में गहरी सोच और धैर्य दोनों की ज़रूरत होती है। आपका सबसे पसंदीदा खेल कौन सा है? 🎮",
             ],
             "casual": [
-                "मोबाइल गेमिंग या कंसोल? आपकी पसंद क्या है? 🕹️",
+                "कहानियों पर आधारित गहरे खेल या त्वरित रणनीति वाले? आपकी प्राथमिकता क्या है? 🕹️",
+            ],
+            "mysterious": [
+                "हर चाल के पीछे एक सोची-समझी रणनीति... आपकी प्रोफ़ाइल में एक शांत गहराई है 🌙🎮",
+            ],
+            "suspenseful": [
+                "एक दोस्ताना मुक़ाबला, और हारने वाले को बेहतरीन डिनर होस्ट करना होगा... क्या आप चुनौती स्वीकार करते हैं? ⏳🎮",
             ]
         },
         "english": {
             "flirty": [
-                "Looks like I found my Player 2. Care for a 1v1 or are we teaming up? 😉🎮",
+                "Strategic minds are inherently captivating. Do you approach life with the same sharp instincts you bring to a game? 😉🎮",
             ],
             "funny": [
-                "Are you the carrying teammate or the one who panics and runs into walls? 😂🎮",
+                "When the stakes get high, are you coolly composed or does an unapologetic competitive streak emerge? 😂🎮",
             ],
             "respectful": [
-                "Hey! Great gaming taste. What’s the title you’ve put the most hours into? 🎮✨",
+                "Good evening. Interactive design and expansive worlds are magnificent creative achievements. What title holds your highest esteem? 🎮✨",
             ],
             "casual": [
-                "Story-driven campaigns or frantic multiplayer lobbies? 🕹️",
+                "Expansive narrative-driven journeys or intricate tactical simulations? Where does your downtime go? 🕹️",
+            ],
+            "mysterious": [
+                "How someone navigates complex puzzles often exposes their psychological patience... intriguing 🔮",
+            ],
+            "suspenseful": [
+                "A friendly wager: one game, victor chooses the setting for our first evening. Are you confident enough to accept? ⏳🎮",
             ]
         }
     }
 }
 
-# General Fallback Opening Lines (when specific interests aren't matched)
+# ==============================================================================
+# GENERAL OPENERS (MATURE MEN & WOMEN STANDARDS)
+# ==============================================================================
+
 GENERAL_OPENERS = {
     "hinglish": {
-        "flirty": [
-            "Ek baat bolu? Tumhari profile picture dekh ke right swipe na karna crime hota ✨😉",
-            "Mera day thoda boring tha, par humara match dekh ke seedha weekend vibe aa gayi! 😏✨",
-            "Warning: Mere jokes par hasna padega, cute lagti ho has kar 😂✨",
-            "Lagta hai universe ne hume match karake sabse sahi faisla kiya hai 😉",
-        ],
-        "funny": [
-            "Hello! Hum match toh ho gaye, ab kya direct shadi ki shopping karein ya pehle 'Hi' bol lu? 😂",
-            "Sach sach batana: profile bio kitni der sochte ho likhne se pehle? 1 ghanta ya 2 din? 😂",
-            "Toh batao, pehla sawal kya hona chahiye—'Chai piyogi?' ya 'Life ka purpose kya hai?' 😂",
-            "Humara match dekh ke algorithm bhi khush ho gaya hoga! Kaise ho? 🤖✨",
-        ],
-        "respectful": [
-            "Hey! Your profile caught my eye—very warm and genuine vibe. How has your week been? 😊",
-            "Hello! Lovely to connect with you here. Hope you're having a relaxing day! ✨",
-            "Hi! Really liked your bio and aesthetic. What's been the highlight of your day so far? 😊",
-            "Hello! Glad we matched. What kind of things do you enjoy doing on weekends? ✨",
-        ],
-        "casual": [
-            "Hey! Sunday routine: bed se hilna nahi ya subah se active plan? 🛋️☕",
-            "Two truths and a lie khelte hain! Tu pehle start kar ya main? 👀🎲",
-            "Hey there! A quick question to break the ice: weekend pe best chill spot kaun sa hai? 📍",
-            "Hello! Ek quick poll: online shopping cart me 50 items add karke bhool jaana pasand hai ya direct buy? 😂",
-        ],
         "mysterious": [
-            "Tumhare profile me ek aisi subtle baat notice ki maine jo 99% log miss kar dete hain... 🔮",
-            "Ek prediction karu tumhare baare me? And trust me, meri predictions rarely galat hoti hain... 🌙",
-            "Tumhari profile me ek ankahee story hai jo kaafi magnetic lag rahi hai... ✨",
-            "Hum dono me ek aisi strange similarity hai jo tumne kabhi expect nahi ki hogi... guess karo? 🔮",
+            "Tumhari presence mein ek quiet confidence aur subtle depth notice hoti hai jo kaafi rare hai... I had to say hello.",
+            "Aapki profile dekh ke lagta hai you have some incredible stories that only a select few get to hear... Am I right?",
+            "There’s an intriguing elegance about you jo easily crowd se alag stand out karti hai... What inspired that look?",
+            "Tumhari vibe se lagta hai you know exactly what you want out of life... rare quality in people these days.",
         ],
         "suspenseful": [
-            "Mujhe tumse ek aisi cheez share karni hai jo shayad mujhe yahan open me nahi bolni chahiye thi... ⏳",
-            "Tumse ek bohot zaroori sawal poochna hai... lekin promise karo 100% sach bologi? 🕵️‍♂️",
-            "Is match ke baad ek plot twist aane wala hai... are you ready for it? ⏳⚡",
-            "Maine tumhari photos dekh ke ek bada decision le liya hai... batau kya? 🤫",
+            "Maine tumhari profile mein ek bohot subtle detail notice ki jo almost sabhi miss kar dete hain... Care to know?",
+            "Ek candid sawal poochna tha... depending on your answer, yeh conversation kaafi interesting hone wali hai.",
+            "Aapka aesthetic dekh ke lagta hai you're either an effortless minimalist ya master of subtle chaos... which one is it?",
+            "Between your taste and your smile, you clearly have high standards. Let's see if our conversation meets them.",
+        ],
+        "flirty": [
+            "They say elegance is about being remembered, not noticed. Safe to say, you left an impression ✨",
+            "Aapki smile mein ek effortless warmth hai jo instant attention grab karti hai... How has your evening been?",
+            "Right swipe karna toh inevitable tha, but your vibe genuinely made me stop and appreciate. Good evening ✨",
+            "Ek rare combination notice kiya: ambition with an effortlessly graceful charm. Truly captivating.",
+        ],
+        "funny": [
+            "Are we going to pretend we didn't both swipe right because of impeccable taste, or skip straight to the good banter?",
+            "Deal karte hain: no boring small talk about the weather, just unfiltered opinions on what actually makes life exciting.",
+            "Tell me you're not the type who agrees on a dinner spot and then changes their mind 3 minutes before arriving...",
+            "Rule number one of connecting: do I need to prepare a 5-star itinerary or just great conversation and quality coffee?",
+        ],
+        "respectful": [
+            "Good evening. It’s genuinely refreshing to see someone articulate their passions with such clarity. How has your week been?",
+            "Hello. Your profile reflects a wonderful sense of balance, ambition, and grace. Hope your day has treated you well.",
+            "Namaste. Very rarely do you find a profile with such authentic depth and poise. Lovely connecting with you.",
+            "Hi! Loved the thoughtful aesthetic and perspective you share. What’s been the most fulfilling part of your week?",
+        ],
+        "casual": [
+            "Quiet evenings with great wine and music, or lively rooftop conversations? Where does your ideal unwind begin?",
+            "How do you usually transition from a demanding work week into weekend mode? Any go-to spots around the city?",
+            "Simple question to start: what’s one passion or project that's been keeping you genuinely excited lately?",
+            "Unwinding with a good book and coffee, or spontaneous city strolls? What suits your rhythm?",
         ]
     },
     "hindi": {
-        "flirty": [
-            "आपकी मुस्कान देखकर लगा कि आज का दिन ख़ास होने वाला है ✨😊",
-            "इत्तेफ़ाक़ भी बड़े ख़ूबसूरत होते हैं, जैसे हमारा यहाँ मैच होना 😉✨",
-        ],
-        "funny": [
-            "नमस्ते! मैच तो हो गया, अब बातचीत की शुरुआत 'हाय' से करें या किसी अच्छे जोक से? 😂",
-            "क्या आप भी उन लोगों में से हैं जो मैसेज टाइप करके 5 बार मिटाते हैं? 😂",
-        ],
-        "respectful": [
-            "नमस्ते! आपकी प्रोफ़ाइल बहुत ही शालीन और ख़ूबसूरत लगी। आपका दिन कैसा गुज़र रहा है? 😊",
-            "हेलो! आपसे जुड़कर बहुत अच्छा लगा। उम्मीद है आपका हफ़्ता शानदार बीता होगा। ✨",
-        ],
-        "casual": [
-            "नमस्ते! वीकेंड पर आराम करना पसंद है या दोस्तों के साथ बाहर जाना? ☕",
-            "हेलो! एक बात बताइए, चाय की चुस्की या कॉफ़ी की महक? ☕",
-        ],
         "mysterious": [
-            "आपकी प्रोफ़ाइल में एक ऐसा राज़ महसूस हुआ जो हर किसी की नज़र में नहीं आता... 🔮",
-            "क्या मैं आपके व्यक्तित्व के बारे में एक गहरा सच बताऊँ? हैरान रह जाएँगी आप 🌙",
-            "आपकी आँखों में एक अनकही कहानी है जो काफ़ी दिलचस्प और ख़ास लग रही है ✨",
+            "आपकी सादगी में एक अनकही गहराई और शालीनता है जो बहुत कम देखने को मिलती है...",
+            "आपकी प्रोफ़ाइल देखकर लगता है कि आपके पास ज़िंदगी के कुछ ऐसे ख़ूबसूरत क़िस्से हैं जो हर किसी के हिस्से नहीं आते।",
+            "एक शांत आत्मविश्वास जो बिना कुछ कहे भी बहुत कुछ बयाँ कर देता है... आपसे मिलकर अच्छा लगा।",
         ],
         "suspenseful": [
-            "मुझे आपसे एक बेहद ज़रूरी सवाल पूछना है... पर वादा कीजिए सच बताएँगी? ⏳",
-            "अगर मैं आपको एक ऐसा सच बताऊँ जो सिर्फ़ मुझे पता है, तो क्या आप संभाल पाएँगी? 🤫",
-            "हमारी इस बातचीत में एक बहुत बड़ा मोड़ आने वाला है... क्या आप तैयार हैं? ⏳⚡",
+            "आपकी प्रोफ़ाइल में एक ऐसी बात नज़र आई जिसने मेरी राय को पूरी तरह बदल दिया... बताऊँ क्या?",
+            "आपसे एक बेबाक सवाल पूछना था... बस वादा कीजिए कि जवाब बिल्कुल सच्चा होगा?",
+            "आपकी पसंद और अंदाज़ देखकर लगता है कि आपको साधारणीकरण बिल्कुल पसंद नहीं। क्या मैं सही हूँ?",
+        ],
+        "flirty": [
+            "कहते हैं ख़ूबसूरती ध्यान खींचती है, पर शालीनता दिल जीत लेती है... आपकी प्रोफ़ाइल में दोनों हैं ✨",
+            "आपकी मुस्कान में एक सहज गरिमा है जो बहुत दिलकश लगती है। कैसी गुज़र रही है आपकी शाम?",
+            "कुछ चेहरों में एक ऐसा ठहराव होता है जो भीड़ से अलग खड़ा कर देता है... आपसे परिचय होना सुखद है।",
+        ],
+        "funny": [
+            "एक वादा करते हैं: मौसम की बोरिंग बातें छोड़ते हैं और सीधी दिलचस्प बातों पर आते हैं! क्या ख़्याल है?",
+            "सच बताइए, क्या आप भी उनमें से हैं जो डिनर की जगह तय होने के बाद आख़िरी 5 मिनट में मूड बदल लेते हैं? 😂",
+            "हमारी पसंद बेहतरीन है तभी तो हम दोनों का मैच हुआ... अब देखना यह है कि बातचीत में कौन बाज़ी मारता है!",
+        ],
+        "respectful": [
+            "नमस्ते। आपकी प्रोफ़ाइल में एक बहुत ही सुलझा हुआ और गरिमामय व्यक्तित्व झलकता है। आपका दिन कैसा बीता?",
+            "हेलो। आपका प्रोफ़ाइल पढ़कर अच्छा लगा। आज कल किस काम या शौक़ में मन लग रहा है?",
+            "प्रणाम। साफ़गोई और सादगी आज के दौर में दुर्लभ हैं, जो आपकी बातों में साफ़ नज़र आती हैं।",
+        ],
+        "casual": [
+            "वीकेंड पर पसंदीदा कॉफ़ी के साथ सुकून की शाम, या शहर की किसी ख़ास जगह पर सैर? आपकी पसंद क्या है?",
+            "व्यस्त दिनचर्या के बाद ख़ुद को रिलैक्स करने का आपका सबसे पसंदीदा तरीक़ा क्या है?",
+            "कामकाज के बीच ख़ुद के लिए वक़्त निकालना कितना आसान या मुश्किल हो पाता है आपके लिए?",
         ]
     },
     "english": {
-        "flirty": [
-            "Not gonna lie, your smile stopped my endless swiping instantly ✨😉",
-            "Are we about to be the cutest couple on this app, or should we take it slow? 😏✨",
-            "I was having an average Tuesday until our match popped up. How's your evening? ✨",
-        ],
-        "funny": [
-            "Our match is here! Do we do the awkward 'Hey' or skip straight to debating pizza toppings? 😂🍕",
-            "Tell me the truth: how long did it take you to pick your profile pictures? 😂📸",
-            "Algorithm did its job, now the pressure is on us not to be boring! 😂 Ready?",
-        ],
-        "respectful": [
-            "Hey! Your profile has such a refreshing and genuine warmth to it. How’s your week going? 😊",
-            "Hello! Great to connect with you. What’s something exciting that happened in your world lately? ✨",
-            "Hi! Loved your photos and prompts. What’s keeping you busy these days? 😊",
-        ],
-        "casual": [
-            "Two truths and a lie to break the ice—who goes first? 🎲👀",
-            "Quick personality test: are you a spontaneous planner or a detailed itinerary person? 🗺️",
-            "Sunday vibe check: cozy blanket and Netflix, or outdoor café exploring? ☕",
-        ],
         "mysterious": [
-            "I noticed a very specific detail in your profile that 99% of people probably scroll past... 🔮",
-            "I have a theory about you based on just your vibe, and I'm rarely wrong. Want to hear it? 🌙",
-            "You have this quiet energy that feels like an unread book with all the best chapters hidden ✨",
-            "There's something wonderfully intriguing about you that caught my attention instantly... 🔮",
+            "You carry yourself with the kind of quiet poise that suggests you have a fascinating story. Care to share a chapter?",
+            "Most people probably notice your looks first, but there's a subtle depth in your presence that feels much more compelling.",
+            "There’s an intriguing calm about your energy—rarely found, impossible to overlook.",
+            "You strike me as someone who observes everything and reveals very little. What's caught your attention today?",
         ],
         "suspenseful": [
-            "I need to ask you one question, but promise you'll answer with ruthless honesty... ⏳",
-            "I was debating whether to message you this or keep it to myself... but here goes 🤫",
-            "There is a 50/50 chance this conversation either starts an adventure or ruins my reputation 😂⏳",
-            "Our match triggered an interesting sequence of events... care to know the plot twist? ⚡",
+            "I noticed a subtle nuance in your profile that made me question my entire first impression of you... Want to hear it?",
+            "I have one honest question, and depending on how you answer, this is either going to be very brief or dangerously interesting.",
+            "Between your taste and your aesthetic, you clearly don't settle for the ordinary. Let's test our chemistry.",
+        ],
+        "flirty": [
+            "They say elegance is about being remembered, not just noticed. You definitely made a lasting impression ✨",
+            "A rare blend of effortless grace and unmistakable ambition. I couldn't scroll past without introducing myself.",
+            "I usually don't reach out first, but your vibe carries a magnetic confidence that was impossible to ignore 😉",
+        ],
+        "funny": [
+            "Are we going to pretend we didn't both match because of impeccable taste, or dive straight into proper banter?",
+            "A quick agreement before we start: zero small talk about the weather, just honest opinions on what makes life exciting.",
+            "Do I need to prepare a curated 5-course itinerary, or do you appreciate spontaneous hole-in-the-wall discoveries? 😂",
+        ],
+        "respectful": [
+            "Good evening. It’s genuinely refreshing to encounter someone with such thoughtful depth and poise on here. How's your week unfolding?",
+            "Hello. Your profile reflects a great sense of intent and individuality. What’s something that genuinely inspired you recently?",
+            "Hi there. Appreciate the calm, grounded energy in your photos. Hope you’re having a productive and fulfilling day.",
+        ],
+        "casual": [
+            "Unwinding with a vintage playlist and good conversation, or exploring vibrant dinner spots? Where's your comfort zone?",
+            "What's the one passion or creative outlet that keeps your energy recharged after a hectic week?",
+            "How do you typically disconnect from the noise of the city when the weekend arrives?",
         ]
     }
 }
 
-# Conversation Reviver Follow-up Suggestions (when conversation is dead / stalled)
+# ==============================================================================
+# CONVERSATION REVIVER SUGGESTIONS (MATURE MEN & WOMEN RE-ENGAGEMENT)
+# ==============================================================================
+
 REVIVE_SUGGESTIONS = {
     "hinglish": {
-        "flirty": [
-            "Lagta hai humari chat thodi freeze ho gayi hai... chalo thoda spark add karte hain 🔥😉",
-            "Main busy tha ya tum mujhe miss kar rahi thi? (I know the answer 😏)",
-            "Ek baat admit karu? Tumhara notification miss kar raha tha ✨",
-            "Conversation thodi chup ho gayi... chalo ice melt karte hain with a quick fun game? 😉",
-        ],
-        "funny": [
-            "Lagta hai tumhara phone astronaut ne Mars pe bhej diya hai! Wapas aa gaya? 🚀😂",
-            "Hello? Ghost ho gaye ya Netflix binge me beh gaye? Ek sign do agar zinda ho! 👻😂",
-            "Yeh silence itna serious hai ki background me sad violin music bajne laga hai 🎻😂",
-            "Quick question: kidnappers ne chhoda ya phone charge pe lagana bhool gaye the? 😂🔋",
-        ],
-        "respectful": [
-            "Hey! Hope you're having a productive week. No pressure at all, just thought I'd check in and see how things are going! 😊",
-            "Hello! I know how hectic life can get. Hope work and everything is treating you well! ✨",
-            "Hey! Saw something today that reminded me of our chat. Hope your week is going smoothly! 😊",
-        ],
-        "casual": [
-            "Hey! Ek random thought aaya and wanted your take on it 👀",
-            "Chat revive protocol activated 🚨! Batao weekend ka kya plan chal raha hai?",
-            "Busy week ya chill vibes? Aaj kal kya chal raha hai tumhari side? ☕",
-        ],
         "mysterious": [
-            "Silence hamesha sabse bada jawab hoti hai... par tumhari silence ka matlab kya samjhu? 🔮",
-            "Lagta hai tum ek mystery banne ki koshish kar rahi ho... and to be honest, it's actually working 😉🌙",
-            "Tumhare baare me ek thought aaya tha aaj subah, par tab tak nahi bataunga jab tak reply na aaye 🤫",
+            "Silence hamesha sabse bada statement hota hai... par tumhari silence mein ek intriguing story lag rahi hai.",
+            "Kuch conversations adhoori reh jaati hain, but I had an intuitive feeling this wasn't supposed to be one of them.",
+            "Tumhari quiet energy notice ki... saving your best thoughts for a quiet evening or just naturally selective?",
         ],
         "suspenseful": [
-            "Tumhara aakhri message ek aisi suspense thriller pe ruka hai ki cliffhanger jhela nahi jaa raha! ⏳🍿",
-            "Ek emergency situation hai: ya toh tum zinda ho, ya fir mujhe detective hire karna padega! 🕵️‍♂️⚡",
-            "Maine hamare baare me ek bohot bada revelation socha hai... reveal karu ya suspense me chhodu? ⏳",
+            "Humari conversation ek fascinating point pe pause ho gayi thi... care to pick up where we left off, ya plot twist ka wait karein?",
+            "I had an interesting observation about how our conversation paused... want to hear my hypothesis?",
+            "Are you testing my patience with this cliffhanger, or did life genuinely throw you into a whirlwind?",
+        ],
+        "flirty": [
+            "I usually don't double text, but letting a conversation this promising fade out felt like a poor executive decision 😉",
+            "Aapki presence yaad aayi... hope life is treating you with the same grace you carry.",
+            "Assuming life got pleasantly busy on your end... but I wanted to make sure our spark didn't go unattended ✨",
+        ],
+        "funny": [
+            "Did work swallow you whole, or are you just selectively social? (No judgment either way, I respect the boundary 😉)",
+            "Assuming you’re currently plotting world domination. Take your time, but drop a sign when you're back.",
+            "I'll give you the benefit of the doubt: either a high-stakes deadline or an intense Netflix binge took over! 😂",
+        ],
+        "respectful": [
+            "Good evening. Knowing how demanding schedules can get, no pressure at all—just wanted to see how your week is shaping up.",
+            "Hello. Saw something today that brought our conversation to mind. Hope work and life have been kind to you.",
+            "Hey! Hope you're managing to take a well-deserved breather amidst the daily hustle.",
+        ],
+        "casual": [
+            "Just checking in—hope the week hasn't been too overwhelming. How's life on your side?",
+            "Reviving this because good conversations are hard to come by. How's everything going with you?",
+            "Weekend prep mode or caught in the mid-week rush? Hope all is well.",
         ]
     },
     "hindi": {
-        "flirty": [
-            "बातचीत थोड़ी थम सी गई है... सोचा आपको याद दिला दूँ कि आप याद आ रहे हैं 😉✨",
-            "ख़ामोशी अच्छी है, पर आपकी बातों की रौनक कुछ और ही होती है 😊",
-        ],
-        "funny": [
-            "क्या आप भी उन लोगों में से हैं जो मैसेज देखकर मन ही मन रिप्लाई दे देते हैं? 😂📱",
-            "लगता है आपका फ़ोन हिमालय की गुफाओं में नेटवर्क ढूंढ रहा है! 😂🏔️",
-        ],
-        "respectful": [
-            "नमस्ते! आशा है आपका काम अच्छा चल रहा होगा। जब भी फ़ुर्सत मिले, बताइएगा आप कैसे हैं। 😊",
-            "हेलो! कोई जल्दबाज़ी नहीं, बस यह जानने के लिए मैसेज किया कि आपका दिन कैसा रहा। ✨",
-        ],
-        "casual": [
-            "नमस्ते! आज कल किस चीज़ में व्यस्त हैं? ☕",
-            "हेलो! हफ़्ते का कौन सा दिन सबसे ज़्यादा पसंद है आपको? ✨",
-        ],
         "mysterious": [
-            "ख़ामोशी भी बहुत कुछ कहती है... पर आपकी ख़ामोशी में कौन सा गहरा राज़ छुपा है? 🔮",
-            "आपके बारे में एक ख़ास ख़्याल आया था, पर बताऊँगा सिर्फ़ आपके जवाब के बाद 🌙",
+            "ख़ामोशी भी अपनी जगह ख़ूबसूरत है... पर आपकी ख़ामोशी में कोई गहरा राज़ महसूस होता है।",
+            "कुछ बातें अनकही रह जाएँ तो अधूरी लगती हैं... सोचा एक बार हालचाल पूछ लूँ।",
+            "शायद आप अपने ख़यालों में व्यस्त हैं... पर इस बातचीत में एक ख़ास ठहराव था जो याद आया।",
         ],
         "suspenseful": [
-            "हमारी बातचीत ऐसे मोड़ पर रुकी है जैसे किसी थ्रिलर फ़िल्म का इंटरवल! ⏳🎬",
-            "क्या आप किसी सीक्रेट मिशन पर हैं या सिर्फ़ फ़ोन से दूर? सच बताइएगा 🕵️‍♂️⏳",
+            "हमारी बातचीत एक बहुत दिलचस्प मोड़ पर आकर रुक गई... क्या कहानी आगे बढ़ाने का इरादा है?",
+            "एक छोटा सा सवाल मन में था... क्या आप जान-बूझकर इंतज़ार करा रहे हैं या वाक़ई वक़्त नहीं मिला?",
+        ],
+        "flirty": [
+            "व्यस्त दिनचर्या में भी कुछ लोगों का ख़्याल बरबस आ ही जाता है... उम्मीद है आपका दिन सुकून भरा रहा ✨",
+            "बातचीत थोड़ी थम गई है, पर आपकी बातों का असर अभी भी बरक़रार है 😊",
+        ],
+        "funny": [
+            "लगता है ऑफ़िस के काम ने आपको पूरी तरह घेर रखा है! जब भी फ़ुर्सत मिले, एक छोटा सा हेलो भेजिएगा।",
+            "ख़ामोशी इतनी लंबी हो गई कि लगा कहीं आप किसी गुप्त मिशन पर तो नहीं निकल गए? 😂",
+        ],
+        "respectful": [
+            "नमस्ते। कोई जल्दबाज़ी नहीं, बस यह जानने के लिए संदेश भेजा कि आपका हफ़्ता कैसा बीत रहा है।",
+            "उम्मीद है कि काम के बीच आपको ख़ुद के लिए भी थोड़ा वक़्त मिल पा रहा होगा।",
+        ],
+        "casual": [
+            "बस यह देखने के लिए मैसेज किया कि सब कुछ ठीक-ठाक चल रहा है या नहीं। आपका दिन कैसा रहा?",
+            "उम्मीद है कि सप्ताह का यह हिस्सा आपके लिए हल्का और सुकून देने वाला साबित हो रहा होगा।",
         ]
     },
     "english": {
-        "flirty": [
-            "Our chat went quiet, but you’re still loud and clear on my mind 😉✨",
-            "Did you get shy, or are you just playing hard to get? Either way, it’s working 😏",
-            "Sending a little spark to reignite our chat 🔥 How’s your week treating you?",
-        ],
-        "funny": [
-            "Are you being held hostage by your to-do list? Blink twice if you need rescue! 😂📋",
-            "My psychic said our conversation would resume today... don’t let my psychic down! 🔮😂",
-            "Did your phone fall into an alternate dimension, or did you just get caught in a 5-hour reel rabbit hole? 😂📱",
-        ],
-        "respectful": [
-            "Hey! Just checking in. I know life gets super busy, so no worries at all—hope you're doing well! 😊",
-            "Hi there! Saw something that made me think of our chat. Hope everything is going great with you! ✨",
-        ],
-        "casual": [
-            "Reviving this chat because I refuse to let a good conversation fade out! How’s your week been? ☕",
-            "Quick vibe check—how has the week been treating you so far? 🌟",
-        ],
         "mysterious": [
-            "Silence is the greatest mystery... but what is yours trying to tell me? 🔮",
-            "You're playing hard to get or just unintentionally enigmatic? Either way, I'm hooked 🌙",
-            "I had a fascinating thought about you today, but you have to unlock it first 🗝️✨",
+            "Silence in an age of non-stop notifications is almost admirable. What's been occupying your world lately?",
+            "I'd like to think you're simply saving your best conversation for a quiet evening over drinks...",
+            "Some connections are meant to pause and pick right back up with more depth. Hope all is well.",
         ],
         "suspenseful": [
-            "Leaving this conversation on a cliffhanger should honestly be a punishable offense! ⏳😂",
-            "I have one final question that will determine whether our story continues or ends here... 🕵️‍♂️⚡",
-            "Are you testing my patience or is there an unexpected plot twist coming? ⏳",
+            "Leaving this conversation on an unresolved cliffhanger feels almost criminal. Care to resolve it?",
+            "I had an intriguing hypothesis about why our chat went quiet... care to confirm or deny?",
+        ],
+        "flirty": [
+            "I rarely circle back on stalled chats, but I have an intuition that our conversation had much more to offer 😉",
+            "Assuming you got swept up in something captivating... hope you're leaving a little room for good banter ✨",
+        ],
+        "funny": [
+            "Did work completely consume your calendar, or are you just testing my conversational stamina? 😉",
+            "Assuming you’re either closing a high-stakes deal or lost in thought. Either way, say hello when you surface.",
+        ],
+        "respectful": [
+            "Good evening. Just checking in with zero expectations—hope you're navigating a busy week with ease.",
+            "Hello. Ran into something that reminded me of our chat. Hope everything in your world is progressing smoothly.",
+        ],
+        "casual": [
+            "Checking in to see if you survived the week in one piece. How are things unfolding on your end?",
+            "No pressure to reply right away—just bringing a little momentum back to our chat.",
         ]
     }
 }
@@ -711,12 +832,12 @@ def extract_matched_topics(match_profile: Dict[str, Any]) -> List[str]:
 VALID_TONES = ["mysterious", "suspenseful", "flirty", "funny", "respectful", "casual"]
 
 TONE_DESCRIPTIONS = {
-    "mysterious": "Deeply intriguing, enigmatic, and magnetic. Create an alluring curiosity gap that makes the user captivating and irresistible. Make them wonder.",
-    "suspenseful": "High-tension cliffhanger, exciting mystery, thrilling secret or dilemma that compels an immediate reply.",
-    "flirty": "Playful charm, charismatic romantic banter, subtle chemistry and tension.",
-    "funny": "Hilarious wit, relatable comedy, banter that makes them laugh out loud.",
-    "respectful": "Polite, thoughtful, high-value gentleman/lady approach.",
-    "casual": "Chill, relaxed, low-pressure conversational curiosity."
+    "mysterious": "Deeply intriguing, enigmatic, and magnetic. Create an alluring curiosity gap with understated psychological depth. Mature, quiet confidence.",
+    "suspenseful": "High-stakes adult curiosity, daring observation or compelling dilemma that commands an immediate, engaged reply.",
+    "flirty": "Sensual charm, understated romantic tension, sophisticated chemistry between two mature adults.",
+    "funny": "Dry wit, sharp observational humor, playful adult banter without slapstick or juvenile silliness.",
+    "respectful": "High-value gentleman or lady approach — articulate, appreciative of depth, culture, and character.",
+    "casual": "Effortless, relaxed, unbothered confidence with genuine curiosity."
 }
 
 async def generate_icebreakers(
@@ -741,20 +862,19 @@ async def generate_icebreakers(
     if api_key:
         tone_instruction = TONE_DESCRIPTIONS.get(tone, "")
         prompt = (
-            f"You are Spark AI Wingman, the world's most charismatic, attractive, and witty dating assistant.\n"
-            f"Generate 3 highly attractive, interesting, and magnetic opening lines for a dating app conversation.\n"
-            f"Match's name: {match_name}\n"
-            f"Match's bio: {match_profile.get('bio', '')}\n"
-            f"Match's interests: {match_profile.get('interests', [])}\n"
+            f"You are Spark AI Wingman — the world's most sophisticated, charismatic, and emotionally intelligent dating advisor.\n"
+            f"Generate 3 magnetic, mature, high-value opening lines for a dating app conversation.\n"
+            f"Target Match: {match_name}\n"
+            f"Bio: {match_profile.get('bio', '')}\n"
+            f"Interests: {match_profile.get('interests', [])}\n"
             f"Tone: {tone.upper()} ({tone_instruction})\n"
-            f"Language: {language} (use natural conversational phrasing, emojis where suitable).\n"
-            f"CRITICAL REQUIREMENTS:\n"
-            f"- Lines must be extremely attractive, clever, magnetic, and spark irresistible curiosity.\n"
-            f"- No generic or boring lines! Give them an exciting reason to reply.\n"
-            f"- If tone is MYSTERIOUS: create an intriguing curiosity gap that makes them eager to know more.\n"
-            f"- If tone is SUSPENSEFUL: build high-stakes playful tension or a cliffhanger dilemma that demands an answer.\n"
-            f"- Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
-            f"- No extra markdown or intro text."
+            f"Language: {language}\n"
+            f"STRICT ADULT MATURITY STANDARDS (MEN & WOMEN LEVEL):\n"
+            f"1. ADULT POISE: Write from the perspective of an emotionally intelligent, high-value, mature MAN or WOMAN in their late 20s or 30s. NEVER sound like a juvenile teenager, boy, or girl.\n"
+            f"2. ZERO CHILDISH CLICHÉS: Strictly NO cheesy pickup lines, NO cartoonish tropes (no aliens, astronauts, kidnappers, zombies, Hogwarts, momos/panipuri silliness).\n"
+            f"3. SOPHISTICATED ATTRACTION: Use effortless charm, subtle romantic tension, intellectual curiosity, elegant banter, and emotional intelligence.\n"
+            f"4. NATURAL DIALOGUE: In Hinglish or Hindi, use natural, mature, tasteful conversational vocabulary that an attractive, worldly adult uses.\n"
+            f"5. Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"]. No markdown or intro text."
         )
         llm_resp = await call_gemini_llm(prompt)
         if llm_resp:
@@ -832,16 +952,17 @@ async def generate_chat_revivers(
         last_msgs_text = "\n".join([f"{m.get('sender', 'user')}: {m.get('text', '')}" for m in recent_messages[-3:]])
         tone_instruction = TONE_DESCRIPTIONS.get(tone, "")
         prompt = (
-            f"You are Spark AI Wingman, the ultimate charismatic dating assistant.\n"
-            f"The conversation with {match_name} has stalled or gone quiet. Generate 3 magnetic, highly interesting follow-up messages to revive the chat.\n"
+            f"You are Spark AI Wingman — the world's most sophisticated, charismatic, and emotionally intelligent dating advisor.\n"
+            f"The conversation with {match_name} has stalled or gone quiet. Generate 3 mature, high-value, attractive follow-up messages to revive the chat.\n"
             f"Recent messages context:\n{last_msgs_text or 'No recent replies'}\n"
             f"Tone: {tone.upper()} ({tone_instruction})\n"
             f"Language: {language}\n"
-            f"CRITICAL RULES:\n"
-            f"- Do NOT sound needy, desperate, or annoyed. Sound confident, intriguing, and attractive.\n"
-            f"- If tone is MYSTERIOUS or SUSPENSEFUL: create an irresistible hook, cliffhanger, or game they can't ignore.\n"
-            f"- Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"].\n"
-            f"- No extra markdown or intro text."
+            f"STRICT ADULT MATURITY STANDARDS (MEN & WOMEN LEVEL):\n"
+            f"1. ADULT POISE: Sound confident, relaxed, and emotionally secure. Never sound needy, desperate, petty, or childish.\n"
+            f"2. ZERO JUVENILE TROPES: Strictly NO jokes about kidnappers, being dead, sad violin music, astronaut on Mars, or whining about being ghosted.\n"
+            f"3. ELEGANT RE-ENGAGEMENT: Use mature unbothered banter, genuine adult curiosity, witty executive charm, or intriguing conversational hooks that a self-respecting man or woman would send.\n"
+            f"4. NATURAL DIALOGUE: In Hinglish or Hindi, write with sophistication and natural adult cadence.\n"
+            f"5. Output strictly a valid JSON array of 3 strings: [\"line 1\", \"line 2\", \"line 3\"]. No markdown or intro text."
         )
         llm_resp = await call_gemini_llm(prompt)
         if llm_resp:
@@ -862,7 +983,6 @@ async def generate_chat_revivers(
             except Exception:
                 pass
 
-    # 2. Local Smart Engine Pool
     pool = REVIVE_SUGGESTIONS.get(language, {}).get(tone, REVIVE_SUGGESTIONS["hinglish"]["mysterious"])
     sampled = random.sample(pool, min(len(pool), 4))
     return {
