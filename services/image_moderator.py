@@ -83,8 +83,11 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
         r, g, b = pixel[0], pixel[1], pixel[2]
 
         # 1. RGB Skin rule
+        # Human skin has warm/melanin tones where green is greater than or equal to blue.
+        # Pink, rose, magenta, and purple clothes have high blue (b > g), so g >= (b - 2) prevents mistaking clothing for skin.
         is_rgb_skin = (
             r > 80 and g > 35 and b > 20 and
+            g >= (b - 2) and
             (max(r, g, b) - min(r, g, b)) > 15 and
             abs(r - g) > 12 and r > g and r > b
         )
@@ -102,8 +105,8 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     total_skin_ratio = skin_count / total_pixels
 
     # 2. Central Torso Zone Analysis (y: 30% to 70%, x: 25% to 75%)
-    # Clothed tops (tank tops, t-shirts, dresses) cover the central chest and abdomen.
-    # Topless, naked, or explicit photos leave the torso exposed (>58% bare skin).
+    # Clothed tops (tank tops, t-shirts, dresses, swim tops) cover the central chest.
+    # Completely topless or nude photos leave >72% bare torso.
     torso_pixels = 0
     torso_skin = 0
     for y_coord in range(30, 70):
@@ -142,19 +145,21 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     cluster_ratio = max_cluster / total_pixels
 
     # Precise Dating App Safety Evaluation:
-    # 1. Total bare skin > 40% (excessive exposure across body / nudity)
-    # 2. Bare Torso > 58% AND total skin > 28% (uncovered chest/stomach, topless/nude)
-    # 3. Massive contiguous bare flesh cluster > 35%
+    # 1. Total bare skin > 48% (excessive exposure across body / complete nudity)
+    # 2. Bare Torso > 72% AND total skin > 35% (topless, bare chest/uncovered)
+    # 3. Massive contiguous bare flesh cluster > 42%
+    # Allows standard swimwear, beachwear, bikinis, crop tops, and cosplay,
+    # while strictly blocking topless/shirtless explicit poses and 18+ adult content.
     is_nsfw = False
     reason = None
 
-    if total_skin_ratio > 0.40:
+    if total_skin_ratio > 0.48:
         is_nsfw = True
         reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
-    elif torso_skin_ratio > 0.58 and total_skin_ratio > 0.28:
+    elif torso_skin_ratio > 0.72 and total_skin_ratio > 0.35:
         is_nsfw = True
         reason = f"Bare torso or uncovered chest detected ({torso_skin_ratio*100:.1f}% bare torso). 18+ or naked photos are not allowed on Spark."
-    elif cluster_ratio > 0.35:
+    elif cluster_ratio > 0.42:
         is_nsfw = True
         reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
 
