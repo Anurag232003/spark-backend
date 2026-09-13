@@ -28,6 +28,11 @@ reports_collection = db["reports"]
 uploads_collection = db["user_uploads"]
 refresh_tokens_collection = db["refresh_tokens"]
 moderation_actions_collection = db["moderation_actions"]
+circles_collection = db["circles"]
+circle_members_collection = db["circle_members"]
+circle_posts_collection = db["circle_posts"]
+circle_post_likes_collection = db["circle_post_likes"]
+circle_comments_collection = db["circle_comments"]
 
 def init_db_indexes():
     """
@@ -107,6 +112,16 @@ def init_db_indexes():
         # 9. moderation_actions collection
         moderation_actions_collection.create_index([("report_id", 1)])
         moderation_actions_collection.create_index([("target_user_id", 1)])
+
+        # 10. Spark Circles collections
+        circles_collection.create_index([("slug", 1)], unique=True, sparse=True)
+        circles_collection.create_index([("category", 1)])
+        circle_members_collection.create_index([("circle_id", 1), ("user_id", 1)], unique=True)
+        circle_members_collection.create_index([("user_id", 1)])
+        circle_posts_collection.create_index([("circle_id", 1), ("created_at", -1)])
+        circle_posts_collection.create_index([("author_id", 1)])
+        circle_post_likes_collection.create_index([("post_id", 1), ("user_id", 1)], unique=True)
+        circle_comments_collection.create_index([("post_id", 1), ("created_at", 1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 

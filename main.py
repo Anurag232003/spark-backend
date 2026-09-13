@@ -75,11 +75,32 @@ from services.notifier import send_sms_otp
 from services.feed_ranking import rank_feed_candidates, compute_candidate_score
 from services.ai_wingman import generate_icebreakers, generate_chat_revivers, generate_profile_coach
 from services.date_planner import generate_date_ideas, build_google_calendar_url
+from services.circles_service import (
+    ensure_seeded_circles,
+    get_circles_list,
+    get_circle_detail,
+    join_circle,
+    leave_circle,
+    get_circle_posts,
+    create_circle_post,
+    toggle_post_like,
+    get_post_comments,
+    create_post_comment,
+    connect_from_circle,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.on_event("startup")
+def on_app_startup():
+    try:
+        ensure_seeded_circles()
+        print("[STARTUP] Spark Circles seeded successfully!")
+    except Exception as e:
+        print(f"[STARTUP] Circles seeding error: {e}")
 
 # --- CORS Configuration (Strict Origins, Methods & Headers) ---
 raw_origins = os.getenv("ALLOWED_ORIGINS", "")
@@ -3041,4 +3062,163 @@ async def respond_to_date_plan(
         "status": "SUCCESS",
         "action": new_status,
         "dateProposal": current_prop
-    }
+    }
+
+# ==============================================================================
+# SPARK CIRCLES — DATING + SOCIAL DISCOVERY ENDPOINTS
+# ==============================================================================
+
+class CreateCirclePostRequest(BaseModel):
+    content: str
+    mediaUrl: Optional[str] = None
+
+class CreateCircleCommentRequest(BaseModel):
+    content: str
+
+class ConnectFromCircleRequest(BaseModel):
+    targetUserId: str
+    circleId: str
+    postId: Optional[str] = None
+    message: Optional[str] = None
+
+@app.get("/api/circles")
+@limiter.limit("60/minute")
+async def list_circles(
+    request: Request,
+    category: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    circles = get_circles_list(user_id=user_id, category=category)
+    return {"status": "SUCCESS", "circles": circles}
+
+@app.get("/api/circles/{circle_id}")
+@limiter.limit("60/minute")
+async def get_circle(
+    request: Request,
+    circle_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    circle = get_circle_detail(circle_id=circle_id, user_id=user_id)
+    if not circle:
+        raise HTTPException(status_code=404, detail="Circle not found")
+    return {"status": "SUCCESS", "circle": circle}
+
+@app.post("/api/circles/{circle_id}/join")
+@limiter.limit("30/minute")
+async def join_circle_endpoint(
+    request: Request,
+    circle_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        res = join_circle(circle_id=circle_id, user_id=user_id)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/circles/{circle_id}/leave")
+@limiter.limit("30/minute")
+async def leave_circle_endpoint(
+    request: Request,
+    circle_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    res = leave_circle(circle_id=circle_id, user_id=user_id)
+    return res
+
+@app.get("/api/circles/{circle_id}/posts")
+@limiter.limit("60/minute")
+async def list_circle_posts(
+    request: Request,
+    circle_id: str,
+    skip: int = 0,
+    limit: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    posts = get_circle_posts(circle_id=circle_id, user_id=user_id, limit=limit, skip=skip)
+    return {"status": "SUCCESS", "posts": posts}
+
+@app.post("/api/circles/{circle_id}/posts")
+@limiter.limit("20/minute")
+async def create_circle_post_endpoint(
+    request: Request,
+    circle_id: str,
+    payload: CreateCirclePostRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        post = create_circle_post(
+            circle_id=circle_id,
+            user_id=user_id,
+            content=payload.content,
+            media_url=payload.mediaUrl
+        )
+        return {"status": "SUCCESS", "post": post}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/circles/posts/{post_id}/like")
+@limiter.limit("60/minute")
+async def toggle_circle_post_like_endpoint(
+    request: Request,
+    post_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    res = toggle_post_like(post_id=post_id, user_id=user_id)
+    return res
+
+@app.get("/api/circles/posts/{post_id}/comments")
+@limiter.limit("60/minute")
+async def list_circle_post_comments(
+    request: Request,
+    post_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    comments = get_post_comments(post_id=post_id)
+    return {"status": "SUCCESS", "comments": comments}
+
+@app.post("/api/circles/posts/{post_id}/comments")
+@limiter.limit("30/minute")
+async def create_circle_post_comment_endpoint(
+    request: Request,
+    post_id: str,
+    payload: CreateCircleCommentRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        comment = create_post_comment(
+            post_id=post_id,
+            user_id=user_id,
+            content=payload.content
+        )
+        return {"status": "SUCCESS", "comment": comment}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/circles/connect")
+@limiter.limit("20/minute")
+async def connect_from_circle_endpoint(
+    request: Request,
+    payload: ConnectFromCircleRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id"]
+    try:
+        res = connect_from_circle(
+            current_user_id=user_id,
+            target_user_id=payload.targetUserId,
+            circle_id=payload.circleId,
+            post_id=payload.postId,
+            opening_message=payload.message
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
