@@ -1131,12 +1131,13 @@ def get_discovery_feed(
 
             geo_cursor = users_collection.find(geo_filter).limit(pool_limit)
             for u in geo_cursor:
-                fetched_ids.add(u["id"])
+                u_id = u.get("id") or str(u.get("_id", ""))
+                fetched_ids.add(u_id)
                 cand_coords = get_user_coordinates(u)
                 dist_km = None
                 if cand_coords:
                     dist_km = calculate_haversine_distance(c_lat, c_lon, cand_coords[0], cand_coords[1])
-                distance_map[u["id"]] = dist_km
+                distance_map[u_id] = dist_km
                 candidates_pool.append(u)
         except Exception:
             pass
@@ -1147,6 +1148,7 @@ def get_discovery_feed(
             fallback_excluded = list(set(all_excluded + list(fetched_ids)))
             pool_cursor = users_collection.find({"id": {"$nin": fallback_excluded}}).limit(remaining)
             for u in pool_cursor:
+                u_id = u.get("id") or str(u.get("_id", ""))
                 cand_coords = get_user_coordinates(u)
                 dist_km = None
                 if cand_coords:
@@ -1157,14 +1159,15 @@ def get_discovery_feed(
                     if dist_km is None or dist_km > safe_max_dist:
                         continue
 
-                distance_map[u["id"]] = dist_km
+                distance_map[u_id] = dist_km
                 candidates_pool.append(u)
 
     else:
         # Fallback when current user has no coordinates
         pool_cursor = users_collection.find({"id": {"$nin": all_excluded}}).limit(pool_limit)
         for u in pool_cursor:
-            distance_map[u["id"]] = None
+            u_id = u.get("id") or str(u.get("_id", ""))
+            distance_map[u_id] = None
             candidates_pool.append(u)
 
     # 6. Multi-Factor Feed Ranking Engine
@@ -1460,9 +1463,9 @@ def get_my_likes(current_user: dict = Depends(get_current_user)):
         if sender:
             likes_list.append({
                 "interactionId": str(item["_id"]),
-                "senderId": sender["id"],
-                "senderName": sender["name"],
-                "senderAge": sender["age"],
+                "senderId": sender.get("id") or str(sender.get("_id", "")),
+                "senderName": sender.get("name") or "Spark Member",
+                "senderAge": sender.get("age") if sender.get("age") is not None else 24,
                 "senderPhoto": sender.get("photos", [""])[0] if sender.get("photos") else "",
                 "targetItemType": item.get("target_item_type"),
                 "comment": item.get("comment"),

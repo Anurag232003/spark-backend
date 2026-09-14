@@ -122,8 +122,8 @@ def compute_preferences_score(
         gender_score = 0.15
 
     # --- 2. Age Matching ---
-    viewer_age = current_user.get("age", 25)
-    candidate_age = candidate.get("age", 25)
+    viewer_age = current_user.get("age") if current_user.get("age") is not None else 25
+    candidate_age = candidate.get("age") if candidate.get("age") is not None else 25
     
     min_age = prefs.get("minAge") or prefs.get("min_age")
     max_age = prefs.get("maxAge") or prefs.get("max_age")
@@ -346,7 +346,8 @@ def compute_candidate_score(
     pref_score = compute_preferences_score(candidate, current_user, query_prefs)
     act_score = compute_activity_score(candidate)
     compat_score = compute_compatibility_score(candidate, current_user)
-    interact_score = compute_interaction_score(candidate["id"], incoming_likes_set)
+    cand_id = candidate.get("id") or str(candidate.get("_id", ""))
+    interact_score = compute_interaction_score(cand_id, incoming_likes_set)
     verify_score = compute_verification_score(candidate)
     vibe_score, vibe_info = compute_vibe_score(candidate, current_user)
 
@@ -392,7 +393,7 @@ def rank_feed_candidates(
     """
     scored_profiles = []
     for candidate in candidates:
-        cand_id = candidate["id"]
+        cand_id = candidate.get("id") or str(candidate.get("_id", ""))
         dist = distance_map.get(cand_id)
         
         score_info = compute_candidate_score(
@@ -404,9 +405,9 @@ def rank_feed_candidates(
         )
 
         item = {
-            "id": candidate["id"],
-            "name": candidate["name"],
-            "age": candidate["age"],
+            "id": cand_id,
+            "name": candidate.get("name") or "Spark Member",
+            "age": candidate.get("age") if candidate.get("age") is not None else 24,
             "gender": candidate.get("gender"),
             "locationName": candidate.get("locationName") or "Nearby",
             "distanceKm": dist,
@@ -416,10 +417,10 @@ def rank_feed_candidates(
             "isPhotoVerified": candidate.get("is_photo_verified", False),
             "dailyVibes": candidate.get("daily_vibes", []),
             "dailyVibeLabel": candidate.get("daily_vibe_label"),
-            "vibeMatch": score_info["vibe_match"],
-            "matchScore": score_info["match_score"],
-            "_rankingSignals": score_info["breakdown"],
-            "_compositeScore": score_info["composite_score"],
+            "vibeMatch": score_info.get("vibe_match", False),
+            "matchScore": score_info.get("match_score", 75),
+            "_rankingSignals": score_info.get("breakdown", {}),
+            "_compositeScore": score_info.get("composite_score", 0),
         }
         scored_profiles.append(item)
 
