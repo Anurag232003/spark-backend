@@ -49,7 +49,7 @@ from services.auth import (
     verify_otp_hash,
     generate_secure_otp,
 )
-from services.cloudinary_uploader import upload_image_to_cloud
+from services.cloudinary_uploader import upload_image_to_cloud, upload_audio_to_cloud
 from services.image_validator import (
     validate_and_process_uploaded_image,
     MAX_FILE_SIZE,
@@ -1909,6 +1909,9 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
             "dateProposal": m.get("date_proposal"),
             "isChemistryChallenge": m.get("is_chemistry_challenge", False),
             "chemistrySession": m.get("chemistry_session"),
+            "isVoiceNote": m.get("is_voice_note", False),
+            "audioUrl": m.get("audio_url"),
+            "durationSeconds": m.get("duration_seconds", 0),
             "timestamp": to_utc_iso(m.get("timestamp"))
         })
     return {
@@ -1922,6 +1925,9 @@ def get_match_messages(match_id: str, current_user: dict = Depends(get_current_u
 class SendMessageRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=1000)
     isScreenshot: Optional[bool] = False
+    isVoiceNote: Optional[bool] = False
+    audioUrl: Optional[str] = None
+    durationSeconds: Optional[float] = 0
 
 @app.post("/api/matches/{match_id}/messages")
 async def send_match_message(
@@ -1932,9 +1938,12 @@ async def send_match_message(
     user_id = current_user["id"]
     text = payload.text.strip()
     is_screenshot = bool(payload.isScreenshot)
+    is_voice_note = bool(payload.isVoiceNote)
+    audio_url = payload.audioUrl
+    duration_seconds = float(payload.durationSeconds or 0)
 
-    # 1. Content Safety: Strict profanity and vulgarity rejection
-    if not is_screenshot:
+    # 1. Content Safety: Strict profanity and vulgarity rejection (skip for voice notes / screenshots)
+    if not is_screenshot and not is_voice_note:
         is_clean, reject_reason = is_message_clean(text)
         if not is_clean:
             raise HTTPException(status_code=400, detail=reject_reason)
@@ -1975,6 +1984,9 @@ async def send_match_message(
         "receiver_id": receiver_id,
         "text": text,
         "is_screenshot": is_screenshot,
+        "is_voice_note": is_voice_note,
+        "audio_url": audio_url,
+        "duration_seconds": duration_seconds,
         "timestamp": datetime.utcnow()
     }
     inserted = messages_collection.insert_one(msg_doc)
@@ -1995,11 +2007,17 @@ async def send_match_message(
         "receiverId": receiver_id,
         "text": text,
         "isScreenshot": is_screenshot,
+        "isVoiceNote": is_voice_note,
+        "audioUrl": audio_url,
+        "durationSeconds": duration_seconds,
         "isDoubleDate": is_double_date,
         "timestamp": to_utc_iso(msg_doc["timestamp"])
     }
 
     try:
+        notif_title = f"{s_name} (Group) 🎙️" if (is_double_date and is_voice_note) else (f"{s_name} (Group) 💬" if is_double_date else (f"{s_name} 🎙️" if is_voice_note else f"{s_name} 💬"))
+        notif_body = f"Voice note ({int(duration_seconds)}s)" if is_voice_note else (text[:60] + ("..." if len(text) > 60 else ""))
+
         if is_double_date and match.get("participants"):
             for p_id in match["participants"]:
                 await manager.send_personal_message(resp_payload, p_id)
@@ -2007,8 +2025,8 @@ async def send_match_message(
                     p_notif = create_notification(
                         user_id=p_id,
                         notif_type="MESSAGE",
-                        title=f"{s_name} (Group) 💬",
-                        body=text[:60] + ("..." if len(text) > 60 else ""),
+                        title=notif_title,
+                        body=notif_body,
                         sender_id=user_id,
                         sender_name=s_name,
                         sender_photo=s_photo,
@@ -2022,8 +2040,8 @@ async def send_match_message(
                 msg_notif = create_notification(
                     user_id=receiver_id,
                     notif_type="MESSAGE",
-                    title=f"{s_name} 💬",
-                    body=text[:60] + ("..." if len(text) > 60 else ""),
+                    title=notif_title,
+                    body=notif_body,
                     sender_id=user_id,
                     sender_name=s_name,
                     sender_photo=s_photo,
@@ -2100,9 +2118,12 @@ async def websocket_chat_endpoint(
                 continue
 
             is_screenshot = data.get("type") == "SCREENSHOT_ALERT" or bool(data.get("isScreenshot", False))
+            is_voice_note = bool(data.get("isVoiceNote", False))
+            audio_url = data.get("audioUrl")
+            duration_seconds = float(data.get("durationSeconds") or 0)
 
-            # Content Safety: Block vulgar, abusive, or sexually explicit messages
-            if not is_screenshot:
+            # Content Safety: Block vulgar, abusive, or sexually explicit messages (skip for voice notes / screenshots)
+            if not is_screenshot and not is_voice_note:
                 is_clean, reject_reason = is_message_clean(text)
                 if not is_clean:
                     await websocket.send_json({
@@ -2212,6 +2233,9 @@ async def websocket_chat_endpoint(
                 "receiver_id": receiver_id,
                 "text": text,
                 "is_screenshot": is_screenshot,
+                "is_voice_note": is_voice_note,
+                "audio_url": audio_url,
+                "duration_seconds": duration_seconds,
                 "timestamp": datetime.utcnow()
             }
             inserted = messages_collection.insert_one(msg_doc)
@@ -2236,9 +2260,15 @@ async def websocket_chat_endpoint(
                 "receiverId": receiver_id,
                 "text": text,
                 "isScreenshot": is_screenshot,
+                "isVoiceNote": is_voice_note,
+                "audioUrl": audio_url,
+                "durationSeconds": duration_seconds,
                 "isDoubleDate": is_double_date,
                 "timestamp": to_utc_iso(msg_doc["timestamp"])
             }
+
+            notif_title = f"{s_name} (Group) 🎙️" if (is_double_date and is_voice_note) else (f"{s_name} (Group) 💬" if is_double_date else (f"{s_name} 🎙️" if is_voice_note else f"{s_name} 💬"))
+            notif_body = f"Voice note ({int(duration_seconds)}s)" if is_voice_note else (text[:60] + ("..." if len(text) > 60 else ""))
 
             # Deliver to participants & dispatch notification
             if is_double_date and match.get("participants"):
@@ -2249,8 +2279,8 @@ async def websocket_chat_endpoint(
                             p_notif = create_notification(
                                 user_id=p_id,
                                 notif_type="MESSAGE",
-                                title=f"{s_name} (Group) 💬",
-                                body=text[:60] + ("..." if len(text) > 60 else ""),
+                                title=notif_title,
+                                body=notif_body,
                                 sender_id=user_id,
                                 sender_name=s_name,
                                 sender_photo=s_photo,
@@ -2263,8 +2293,8 @@ async def websocket_chat_endpoint(
                     msg_notif = create_notification(
                         user_id=receiver_id,
                         notif_type="MESSAGE",
-                        title=f"{s_name} 💬",
-                        body=text[:60] + ("..." if len(text) > 60 else ""),
+                        title=notif_title,
+                        body=notif_body,
                         sender_id=user_id,
                         sender_name=s_name,
                         sender_photo=s_photo,
@@ -2361,6 +2391,36 @@ async def upload_photo(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
+
+# --- 14b. Cloud Audio / Voice Note Upload (Authenticated) ---
+@app.post("/api/upload-audio")
+async def upload_audio(
+    request: Request,
+    file: UploadFile = File(...),
+    duration: Optional[float] = Form(0.0),
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user.get("id", "unknown")
+    try:
+        raw_bytes = await file.read()
+        if len(raw_bytes) > 12 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Audio file exceeds 12MB limit.")
+        
+        import io
+        audio_stream = io.BytesIO(raw_bytes)
+        cloud_url = upload_audio_to_cloud(audio_stream, folder=f"spark_dating_voice_notes/{user_id}")
+
+        return {
+            "status": "SUCCESS",
+            "url": cloud_url,
+            "duration": float(duration or 0.0),
+            "filename": file.filename
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Audio upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Voice note upload failed: {str(e)}")
 
 def format_user_profile_response(user: dict) -> dict:
     return {

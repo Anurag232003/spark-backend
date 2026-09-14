@@ -35,3 +35,18 @@ def upload_image_to_cloud(file_obj, folder: str = "spark_dating_profiles") -> st
     except Exception as e:
         print(f"Cloudinary upload error: {e}")
         raise e
+
+def upload_audio_to_cloud(file_obj, folder: str = "spark_dating_voice_notes") -> str:
+    """
+    Audio stream ko Cloudinary par upload karke secure CDN URL return karta hai.
+    """
+    try:
+        response = cloudinary.uploader.upload(
+            file_obj,
+            folder=folder,
+            resource_type="video",  # Cloudinary audio ko video/auto resource type me handle karta hai
+        )
+        return response.get("secure_url")
+    except Exception as e:
+        print(f"Cloudinary audio upload error: {e}")
+        raise e
