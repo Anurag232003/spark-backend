@@ -119,6 +119,17 @@ from services.safety_service import (
     get_active_date_checkin,
     INDIA_SAFETY_RESOURCES,
 )
+from services.notification_service import (
+    create_notification,
+    get_user_notifications_summary,
+    mark_user_notifications,
+)
+from services.daily_spark_service import (
+    generate_or_get_daily_sparks,
+    interact_daily_spark,
+    get_spark_challenge,
+    submit_challenge_answer,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -1215,7 +1226,7 @@ def update_my_preferences(payload: UpdatePreferencesRequest, current_user: dict 
 
 # --- 5. Interactions (Likes / Passes) ---
 @app.post("/api/interactions")
-def handle_interaction(payload: InteractionRequest, current_user: dict = Depends(get_current_user)):
+async def handle_interaction(payload: InteractionRequest, current_user: dict = Depends(get_current_user)):
     from_user_id = current_user["id"]
 
     # 1. Prevent self-interaction
@@ -1284,6 +1295,12 @@ def handle_interaction(payload: InteractionRequest, current_user: dict = Depends
         "type": "LIKE"
     })
 
+    s_user = users_collection.find_one({"id": from_user_id})
+    s_name = s_user.get("name", "Someone") if s_user else "Someone"
+    s_photo = (s_user.get("photos", [""]) or [""])[0] if s_user else ""
+    t_name = target_user.get("name", "Someone")
+    t_photo = (target_user.get("photos", [""]) or [""])[0]
+
     if mutual_like:
         deadline = datetime.utcnow() + timedelta(hours=24)
         now = datetime.utcnow()
@@ -1335,11 +1352,40 @@ def handle_interaction(payload: InteractionRequest, current_user: dict = Depends
                 return_document=ReturnDocument.AFTER
             )
 
+        match_id_str = str(match_doc["_id"])
+
+        # Dispatch In-App Notifications for both matched users
+        notif_target = create_notification(
+            user_id=payload.targetUserId,
+            notif_type="MATCH",
+            title="It's a Match! 🎉",
+            body=f"You and {s_name} liked each other! Say hello.",
+            sender_id=from_user_id,
+            sender_name=s_name,
+            sender_photo=s_photo,
+            match_id=match_id_str
+        )
+        notif_sender = create_notification(
+            user_id=from_user_id,
+            notif_type="MATCH",
+            title="It's a Match! 🎉",
+            body=f"You and {t_name} liked each other! Start the conversation.",
+            sender_id=payload.targetUserId,
+            sender_name=t_name,
+            sender_photo=t_photo,
+            match_id=match_id_str
+        )
+        try:
+            await manager.send_personal_message({"type": "NOTIFICATION", "notification": notif_target}, payload.targetUserId)
+            await manager.send_personal_message({"type": "NOTIFICATION", "notification": notif_sender}, from_user_id)
+        except Exception:
+            pass
+
         return {
             "status": "SUCCESS",
             "isMatch": True,
             "matchDetails": {
-                "matchId": str(match_doc["_id"]),
+                "matchId": match_id_str,
                 "user": payload.targetUserId,
                 "firstMoveDeadline": match_doc.get("first_move_deadline", deadline).isoformat(),
                 "firstMoverId": match_doc.get("first_mover_id", first_mover_id),
@@ -1347,6 +1393,21 @@ def handle_interaction(payload: InteractionRequest, current_user: dict = Depends
                 "initialComment": payload.comment
             }
         }
+
+    # Initial LIKE notification for the target user (lights up Likes tab red dot)
+    notif_like = create_notification(
+        user_id=payload.targetUserId,
+        notif_type="LIKE",
+        title="New Like Received! ❤️",
+        body=f"{s_name} liked your profile! Open Likes to connect.",
+        sender_id=from_user_id,
+        sender_name=s_name,
+        sender_photo=s_photo
+    )
+    try:
+        await manager.send_personal_message({"type": "NOTIFICATION", "notification": notif_like}, payload.targetUserId)
+    except Exception:
+        pass
 
     return {"status": "SUCCESS", "isMatch": False}
 
@@ -1528,6 +1589,22 @@ def get_user_matches(target_user_id: str, current_user: dict = Depends(get_curre
             detail="Unauthorized to access another user's matches."
         )
     return get_my_matches(current_user=current_user)
+
+# --- 7b. In-App Notifications & Badges ---
+class MarkNotificationReadRequest(BaseModel):
+    type: Optional[str] = None  # "ALL", "LIKE", "MATCH", "MESSAGE"
+    notificationId: Optional[str] = None
+
+@app.get("/api/notifications")
+def get_user_notifications(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["id"]
+    return get_user_notifications_summary(user_id)
+
+@app.post("/api/notifications/mark-read")
+def mark_notifications_read(payload: MarkNotificationReadRequest, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["id"]
+    modified = mark_user_notifications(user_id, payload.type, payload.notificationId)
+    return {"status": "SUCCESS", "modifiedCount": modified}
 
 # --- 8. Unmatch User ---
 @app.post("/api/matches/{match_id}/unmatch")
@@ -1909,9 +1986,33 @@ async def send_match_message(
         if is_double_date and match.get("participants"):
             for p_id in match["participants"]:
                 await manager.send_personal_message(resp_payload, p_id)
+                if p_id != user_id and not is_screenshot:
+                    p_notif = create_notification(
+                        user_id=p_id,
+                        notif_type="MESSAGE",
+                        title=f"{s_name} (Group) 💬",
+                        body=text[:60] + ("..." if len(text) > 60 else ""),
+                        sender_id=user_id,
+                        sender_name=s_name,
+                        sender_photo=s_photo,
+                        match_id=match_id
+                    )
+                    await manager.send_personal_message({"type": "NOTIFICATION", "notification": p_notif}, p_id)
         else:
             await manager.send_personal_message(resp_payload, user_id)
             await manager.send_personal_message(resp_payload, receiver_id)
+            if not is_screenshot:
+                msg_notif = create_notification(
+                    user_id=receiver_id,
+                    notif_type="MESSAGE",
+                    title=f"{s_name} 💬",
+                    body=text[:60] + ("..." if len(text) > 60 else ""),
+                    sender_id=user_id,
+                    sender_name=s_name,
+                    sender_photo=s_photo,
+                    match_id=match_id
+                )
+                await manager.send_personal_message({"type": "NOTIFICATION", "notification": msg_notif}, receiver_id)
     except Exception:
         pass
 
@@ -2122,13 +2223,37 @@ async def websocket_chat_endpoint(
                 "timestamp": to_utc_iso(msg_doc["timestamp"])
             }
 
-            # Deliver to participants
+            # Deliver to participants & dispatch notification
             if is_double_date and match.get("participants"):
                 for p_id in match["participants"]:
                     if p_id != user_id:
                         await manager.send_personal_message(broadcast_payload, p_id)
+                        if not is_screenshot:
+                            p_notif = create_notification(
+                                user_id=p_id,
+                                notif_type="MESSAGE",
+                                title=f"{s_name} (Group) 💬",
+                                body=text[:60] + ("..." if len(text) > 60 else ""),
+                                sender_id=user_id,
+                                sender_name=s_name,
+                                sender_photo=s_photo,
+                                match_id=match_id
+                            )
+                            await manager.send_personal_message({"type": "NOTIFICATION", "notification": p_notif}, p_id)
             else:
                 await manager.send_personal_message(broadcast_payload, receiver_id)
+                if not is_screenshot:
+                    msg_notif = create_notification(
+                        user_id=receiver_id,
+                        notif_type="MESSAGE",
+                        title=f"{s_name} 💬",
+                        body=text[:60] + ("..." if len(text) > 60 else ""),
+                        sender_id=user_id,
+                        sender_name=s_name,
+                        sender_photo=s_photo,
+                        match_id=match_id
+                    )
+                    await manager.send_personal_message({"type": "NOTIFICATION", "notification": msg_notif}, receiver_id)
 
             # Sync message to all other connected devices of the sender
             await manager.broadcast_to_user_devices(broadcast_payload, user_id, exclude_socket=websocket)
@@ -3744,5 +3869,60 @@ def update_my_daily_vibe_endpoint(
         "vibeUpdatedAt": now.isoformat(),
         "vibeExpiresAt": expires_at.isoformat(),
     }
+
+# ── 24-Hour Spark — Daily Limited Connection & Challenge APIs ────────
+class DailySparkInteractionRequest(BaseModel):
+    action: str  # "LIKE" | "PASS"
+
+class SubmitChallengeAnswerRequest(BaseModel):
+    level: int
+    answer: str
+
+@app.get("/api/sparks/daily")
+def get_daily_sparks_endpoint(current_user: dict = Depends(get_current_user)):
+    """
+    Returns today's 1-3 algorithmic curated profiles for anti-swipe fatigue.
+    Includes reasons why they matched, compatibility score, and 24h countdown.
+    """
+    user_id = current_user["id"]
+    return generate_or_get_daily_sparks(user_id)
+
+@app.post("/api/sparks/daily/{candidate_id}/interact")
+def interact_daily_spark_endpoint(
+    candidate_id: str,
+    payload: DailySparkInteractionRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Records a like or pass on today's curated spark drop.
+    If reciprocal or mutual like, creates a 24-hour match and unlocks the Conversation Challenge.
+    """
+    user_id = current_user["id"]
+    return interact_daily_spark(user_id, candidate_id, payload.action)
+
+@app.get("/api/sparks/challenges/{match_id}")
+def get_spark_challenge_endpoint(
+    match_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Returns the active 24-hour conversation challenge countdown, milestone questions, and completion state.
+    """
+    user_id = current_user["id"]
+    return get_spark_challenge(match_id, user_id)
+
+@app.post("/api/sparks/challenges/{match_id}/submit")
+def submit_spark_challenge_answer_endpoint(
+    match_id: str,
+    payload: SubmitChallengeAnswerRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Submits an interactive response to a 24-hour conversation challenge milestone.
+    Locks the match permanent once milestone 3 or challenge threshold is completed.
+    """
+    user_id = current_user["id"]
+    return submit_challenge_answer(match_id, user_id, payload.level, payload.answer)
+
 
 

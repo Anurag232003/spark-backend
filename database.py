@@ -39,6 +39,9 @@ chemistry_profiles_collection = db["chemistry_profiles"]
 chemistry_sessions_collection = db["chemistry_sessions"]
 trusted_contacts_collection = db["trusted_contacts"]
 date_checkins_collection = db["date_checkins"]
+notifications_collection = db["notifications"]
+daily_sparks_collection = db["daily_sparks"]
+spark_challenges_collection = db["spark_challenges"]
 
 def init_db_indexes():
     """
@@ -148,6 +151,16 @@ def init_db_indexes():
         date_checkins_collection.create_index([("checkin_id", 1)], unique=True, sparse=True)
         date_checkins_collection.create_index([("user_id", 1), ("status", 1)])
         date_checkins_collection.create_index([("created_at", -1)])
+
+        # 14. Notifications collection
+        notifications_collection.create_index([("user_id", 1), ("read", 1)])
+        notifications_collection.create_index([("created_at", -1)])
+
+        # 15. 24-Hour Spark & Conversation Challenge collections
+        daily_sparks_collection.create_index([("user_id", 1), ("drop_date", 1)], unique=True)
+        daily_sparks_collection.create_index([("expires_at", 1)])
+        spark_challenges_collection.create_index([("match_id", 1)], unique=True)
+        spark_challenges_collection.create_index([("expires_at", 1), ("is_completed", 1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 

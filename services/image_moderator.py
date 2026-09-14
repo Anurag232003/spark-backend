@@ -223,24 +223,39 @@ def detect_nudity_and_nsfw(img: Image.Image) -> Dict[str, Any]:
     is_nsfw = False
     reason = None
 
-    # Layer 1: AI Deep Learning Classifier (Zero Tolerance for explicit 18+ content)
-    if ai_nsfw_score >= 0.30:
-        is_nsfw = True
-        reason = f"Explicit 18+ or adult content detected by AI neural vision ({ai_nsfw_score*100:.1f}% confidence). Nudity is strictly prohibited on Spark."
+    ai_session, _, _ = get_ai_nsfw_session()
+    ai_available = ai_session is not None
 
-    # Layer 2: Anatomical Fallback Checks
-    elif total_skin_ratio > 0.45 and midriff_ratio > 0.28:
-        is_nsfw = True
-        reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
-    elif midriff_ratio > 0.35 and (bodice_ratio > 0.45 or chest_ratio > 0.50):
-        is_nsfw = True
-        reason = f"Bare torso or uncovered chest detected ({bodice_ratio*100:.1f}% bodice, {midriff_ratio*100:.1f}% midriff). 18+ photos are not allowed on Spark."
-    elif bodice_ratio > 0.65 and midriff_ratio > 0.25:
-        is_nsfw = True
-        reason = f"Uncovered chest detected ({bodice_ratio*100:.1f}% bare bodice). 18+ photos are not allowed on Spark."
-    elif cluster_ratio > 0.35 and midriff_ratio > 0.25:
-        is_nsfw = True
-        reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
+    if ai_available:
+        # Layer 1: AI Deep Learning Classifier (Trained Open-NSFW Neural Network)
+        if ai_nsfw_score >= 0.35:
+            is_nsfw = True
+            reason = f"Explicit 18+ or adult content detected by AI neural vision ({ai_nsfw_score*100:.1f}% confidence). Nudity is strictly prohibited on Spark."
+        elif total_skin_ratio > 0.75 and cluster_ratio > 0.55:
+            # Extreme full-body nudity / flesh exposure (>75% bare skin across entire image)
+            is_nsfw = True
+            reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
+        elif ai_nsfw_score >= 0.20:
+            # Borderline AI score: verify with anatomical rules using realistic thresholds
+            if total_skin_ratio > 0.55 and midriff_ratio > 0.45 and cluster_ratio > 0.35:
+                is_nsfw = True
+                reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
+            elif midriff_ratio > 0.55 and bodice_ratio > 0.65 and cluster_ratio > 0.30:
+                is_nsfw = True
+                reason = f"Bare torso or uncovered chest detected ({bodice_ratio*100:.1f}% bodice, {midriff_ratio*100:.1f}% midriff). 18+ photos are not allowed on Spark."
+        # If ai_nsfw_score < 0.20, AI neural network confirms photo is fully clothed / safe
+    else:
+        # Layer 2: Anatomical Fallback (Only active if AI model is completely offline)
+        # Robust thresholds to eliminate false positives from brick walls, wooden interiors, beige clothes & cafe lighting
+        if total_skin_ratio > 0.70 and cluster_ratio > 0.50:
+            is_nsfw = True
+            reason = f"Excessive body exposure ({total_skin_ratio*100:.1f}% bare skin). Nude or 18+ photos are strictly prohibited on Spark."
+        elif bodice_ratio > 0.75 and midriff_ratio > 0.65 and cluster_ratio > 0.35:
+            is_nsfw = True
+            reason = f"Bare torso or uncovered chest detected ({bodice_ratio*100:.1f}% bodice, {midriff_ratio*100:.1f}% midriff). 18+ photos are not allowed on Spark."
+        elif cluster_ratio > 0.55 and total_skin_ratio > 0.50:
+            is_nsfw = True
+            reason = f"Dominant uncovered body area detected ({cluster_ratio*100:.1f}% cluster). 18+ photos are not allowed on Spark."
 
     return {
         "is_nsfw": is_nsfw,
