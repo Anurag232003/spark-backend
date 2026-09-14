@@ -53,6 +53,7 @@ daily_sparks_collection = db["daily_sparks"]
 spark_challenges_collection = db["spark_challenges"]
 secret_interests_collection = db["secret_interests"]
 secret_matches_collection = db["secret_matches"]
+spark_quests_collection = db["spark_quests"]
 
 def init_db_indexes():
     """
@@ -179,6 +180,12 @@ def init_db_indexes():
         secret_matches_collection.create_index([("user1_id", 1), ("is_revealed", 1)])
         secret_matches_collection.create_index([("user2_id", 1), ("is_revealed", 1)])
         secret_matches_collection.create_index([("cycle_expires_at", 1)])
+
+        # 17. Spark Quest real-life dating challenges collections
+        spark_quests_collection.create_index([("match_id", 1)], unique=True)
+        spark_quests_collection.create_index([("user1_id", 1)])
+        spark_quests_collection.create_index([("user2_id", 1)])
+        spark_quests_collection.create_index([("is_completed", 1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 

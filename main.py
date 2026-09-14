@@ -6,7 +6,7 @@ import math
 import urllib.request
 import threading
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Set, Tuple
+from typing import Optional, List, Dict, Set, Tuple, Any
 from collections import defaultdict
 from enum import Enum
 
@@ -137,6 +137,12 @@ from services.secret_interest_service import (
     get_secret_matches_for_user,
     consent_to_reveal,
     decline_secret_match,
+)
+from services.spark_quest_service import (
+    get_or_create_quest,
+    get_user_quests_summary,
+    submit_level_action,
+    get_curated_date_ideas,
 )
 
 limiter = Limiter(key_func=get_remote_address)
@@ -3985,6 +3991,54 @@ def decline_secret_match_endpoint(
     """Declines the secret match candidate."""
     user_id = current_user["id"]
     return decline_secret_match(user_id, match_id)
+
+
+# ── Spark Quest — Real-Life Dating Challenges (5 Levels) APIs ──
+class SubmitSparkQuestLevelRequest(BaseModel):
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+@app.get("/api/spark-quests")
+def get_user_spark_quests_endpoint(current_user: dict = Depends(get_current_user)):
+    """Returns summary of all active Spark Quests for the user across matches."""
+    user_id = current_user["id"]
+    return {"quests": get_user_quests_summary(user_id)}
+
+@app.get("/api/spark-quests/date-ideas")
+def get_spark_quest_date_ideas_endpoint():
+    """Returns curated date idea cards for Level 4."""
+    return {"dateIdeas": get_curated_date_ideas()}
+
+@app.get("/api/spark-quests/{match_id}")
+def get_spark_quest_detail_endpoint(
+    match_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Returns the full 5-level roadmap and progress for a specific match."""
+    user_id = current_user["id"]
+    quest = get_or_create_quest(match_id, user_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Spark Quest not found or unauthorized.")
+    return quest
+
+@app.post("/api/spark-quests/{match_id}/levels/{level}/submit")
+def submit_spark_quest_level_endpoint(
+    match_id: str,
+    level: int,
+    req: SubmitSparkQuestLevelRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Submits action for a level in Spark Quest. Advances to next level when both complete."""
+    user_id = current_user["id"]
+    try:
+        updated_quest = submit_level_action(match_id, user_id, level, req.payload)
+        return updated_quest
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit quest level: {str(e)}")
+
 
 
 
