@@ -130,6 +130,14 @@ from services.daily_spark_service import (
     get_spark_challenge,
     submit_challenge_answer,
 )
+from services.secret_interest_service import (
+    get_secret_interests_catalog,
+    get_user_secret_interests,
+    save_user_secret_interests,
+    get_secret_matches_for_user,
+    consent_to_reveal,
+    decline_secret_match,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -3923,6 +3931,61 @@ def submit_spark_challenge_answer_endpoint(
     """
     user_id = current_user["id"]
     return submit_challenge_answer(match_id, user_id, payload.level, payload.answer)
+
+# ── Secret Interest Match — 5-Day Limited Discovery & Anonymous Reveal APIs ──
+class SaveSecretInterestsRequest(BaseModel):
+    interests: List[str]
+
+@app.get("/api/secret-interests/catalog")
+def get_secret_interests_catalog_endpoint():
+    """Returns the curated catalog of hidden passions and secret interests."""
+    return {"catalog": get_secret_interests_catalog()}
+
+@app.get("/api/secret-interests/my")
+def get_my_secret_interests_endpoint(current_user: dict = Depends(get_current_user)):
+    """Returns current user's 5 secret interests and 5-day cycle drop timer."""
+    user_id = current_user["id"]
+    return get_user_secret_interests(user_id)
+
+@app.post("/api/secret-interests/my")
+def save_my_secret_interests_endpoint(
+    payload: SaveSecretInterestsRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Saves user's up to 5 secret interests and checks 5-day drop cycle for matches."""
+    user_id = current_user["id"]
+    return save_user_secret_interests(user_id, payload.interests)
+
+@app.get("/api/secret-interests/matches")
+def get_secret_matches_endpoint(current_user: dict = Depends(get_current_user)):
+    """Returns active 5-day secret match with strict zero-exposure anonymity until both consent."""
+    user_id = current_user["id"]
+    return get_secret_matches_for_user(user_id)
+
+@app.post("/api/secret-interests/matches/{match_id}/reveal")
+def consent_to_reveal_endpoint(
+    match_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Registers opt-in consent to reveal profile to the secret match.
+    If both users consent, profiles unlock and direct chat opens!
+    """
+    user_id = current_user["id"]
+    try:
+        return consent_to_reveal(user_id, match_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@app.post("/api/secret-interests/matches/{match_id}/decline")
+def decline_secret_match_endpoint(
+    match_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Declines the secret match candidate."""
+    user_id = current_user["id"]
+    return decline_secret_match(user_id, match_id)
+
 
 
 

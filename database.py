@@ -14,6 +14,15 @@ MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise RuntimeError("MONGO_URI environment variable is not set. Please define it in your .env file or environment.")
 
+# Configure robust DNS resolver for MongoDB Atlas SRV connection on Windows
+try:
+    import dns.resolver
+    resolver = dns.resolver.Resolver(configure=False)
+    resolver.nameservers = ["8.8.8.8", "1.1.1.1", "8.8.4.4"]
+    dns.resolver.default_resolver = resolver
+except Exception as _e:
+    pass
+
 client = MongoClient(MONGO_URI)
 db = client["dating_app_db"]
 
@@ -42,6 +51,8 @@ date_checkins_collection = db["date_checkins"]
 notifications_collection = db["notifications"]
 daily_sparks_collection = db["daily_sparks"]
 spark_challenges_collection = db["spark_challenges"]
+secret_interests_collection = db["secret_interests"]
+secret_matches_collection = db["secret_matches"]
 
 def init_db_indexes():
     """
@@ -161,6 +172,13 @@ def init_db_indexes():
         daily_sparks_collection.create_index([("expires_at", 1)])
         spark_challenges_collection.create_index([("match_id", 1)], unique=True)
         spark_challenges_collection.create_index([("expires_at", 1), ("is_completed", 1)])
+
+        # 16. Secret Interest Match collections
+        secret_interests_collection.create_index([("user_id", 1)], unique=True)
+        secret_matches_collection.create_index([("pair_key", 1)], unique=True)
+        secret_matches_collection.create_index([("user1_id", 1), ("is_revealed", 1)])
+        secret_matches_collection.create_index([("user2_id", 1), ("is_revealed", 1)])
+        secret_matches_collection.create_index([("cycle_expires_at", 1)])
     except Exception as e:
         print(f"Warning: Index creation deferred or failed: {e}")
 
