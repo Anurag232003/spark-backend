@@ -144,6 +144,15 @@ from services.spark_quest_service import (
     submit_level_action,
     get_curated_date_ideas,
 )
+from services.ai_matchmaker_service import (
+    PERSONALITY_QUIZ_SCHEMA,
+    get_matchmaker_recommendations,
+    record_matchmaker_feedback,
+    reset_user_matchmaker_profile,
+    check_user_vip_status,
+    activate_user_vip,
+)
+from database import matchmaker_profiles_collection
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Spark Dating Engine (Production Secure)")
@@ -4101,6 +4110,108 @@ def submit_spark_quest_level_endpoint(
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to submit quest level: {str(e)}")
+
+
+# ── Spark AI Matchmaker — 6-Layer Intelligence & VIP Discovery APIs ──
+class SaveMatchmakerQuizRequest(BaseModel):
+    answers: Dict[str, str]
+
+class MatchmakerFeedbackRequest(BaseModel):
+    candidateId: str
+    feedback: str
+    note: Optional[str] = None
+
+class SubscribeVipRequest(BaseModel):
+    tier: str = "spark_vip_monthly"
+
+@app.get("/api/matchmaker/quiz-schema")
+def get_matchmaker_quiz_schema_endpoint():
+    """Returns the 4-question personality quiz schema + dating intent options."""
+    return PERSONALITY_QUIZ_SCHEMA
+
+@app.get("/api/matchmaker/profile")
+def get_matchmaker_profile_endpoint(current_user: dict = Depends(get_current_user)):
+    """Returns user's saved personality quiz profile and answers."""
+    user_id = current_user["id"]
+    doc = matchmaker_profiles_collection.find_one({"user_id": user_id}) or {}
+    return {
+        "userId": user_id,
+        "hasCompletedQuiz": bool(doc.get("answers")),
+        "answers": doc.get("answers", {}),
+        "updatedAt": to_utc_iso(doc.get("updated_at")),
+    }
+
+@app.post("/api/matchmaker/quiz")
+def save_matchmaker_quiz_endpoint(
+    req: SaveMatchmakerQuizRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Saves or updates user's personality quiz answers and updates user document."""
+    user_id = current_user["id"]
+    now = datetime.utcnow()
+    matchmaker_profiles_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "user_id": user_id,
+            "answers": req.answers,
+            "updated_at": now,
+        }},
+        upsert=True
+    )
+    # Also sync relationship intent to main user profile if provided
+    intent = req.answers.get("relationship_intent")
+    if intent:
+        users_collection.update_one(
+            {"id": user_id},
+            {"$set": {"relationshipGoals": intent, "updated_at": now}}
+        )
+    return {"status": "SUCCESS", "message": "Spark Personality Quiz saved successfully!"}
+
+@app.get("/api/matchmaker/recommendations")
+def get_matchmaker_recommendations_endpoint(current_user: dict = Depends(get_current_user)):
+    """
+    Returns curated AI Matchmaker recommendations:
+    - Daily 5 Sparks
+    - Hidden Gem 💎
+    - Opposite Vibe ⚡
+    - 'Why you might click' explanation bullets
+    - Dynamic AI Icebreakers
+    - Formula-based compatibility breakdown
+    - VIP access gating
+    """
+    user_id = current_user["id"]
+    return get_matchmaker_recommendations(user_id)
+
+@app.post("/api/matchmaker/feedback")
+def submit_matchmaker_feedback_endpoint(
+    req: MatchmakerFeedbackRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Records user feedback ('interested', 'not_my_type', 'too_far', etc.) to tune future recommendations."""
+    user_id = current_user["id"]
+    return record_matchmaker_feedback(user_id, req.candidateId, req.feedback, req.note)
+
+@app.post("/api/matchmaker/reset")
+def reset_matchmaker_preferences_endpoint(current_user: dict = Depends(get_current_user)):
+    """Resets user's quiz answers and feedback learning preferences."""
+    user_id = current_user["id"]
+    return reset_user_matchmaker_profile(user_id)
+
+@app.get("/api/matchmaker/vip-status")
+def get_matchmaker_vip_status_endpoint(current_user: dict = Depends(get_current_user)):
+    """Returns user's Spark VIP / Matchmaker tier status."""
+    user_id = current_user["id"]
+    return check_user_vip_status(user_id)
+
+@app.post("/api/matchmaker/subscribe-vip")
+def subscribe_vip_endpoint(
+    req: SubscribeVipRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Activates or upgrades user to Spark VIP tier."""
+    user_id = current_user["id"]
+    return activate_user_vip(user_id, tier=req.tier)
+
 
 
 

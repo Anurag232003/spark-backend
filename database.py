@@ -54,6 +54,9 @@ spark_challenges_collection = db["spark_challenges"]
 secret_interests_collection = db["secret_interests"]
 secret_matches_collection = db["secret_matches"]
 spark_quests_collection = db["spark_quests"]
+matchmaker_profiles_collection = db["matchmaker_profiles"]
+matchmaker_feedbacks_collection = db["matchmaker_feedbacks"]
+vip_subscriptions_collection = db["vip_subscriptions"]
 
 def init_db_indexes():
     """
